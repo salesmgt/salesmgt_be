@@ -1,26 +1,18 @@
 package com.app.demo.securities;
 
-import java.util.Arrays;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -53,7 +45,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
          .authorizeRequests()
         /* .antMatchers("/**").permitAll()*/
          .antMatchers("/access-tokens")
-         .permitAll()
+         .permitAll().antMatchers("/swagger-ui.html").permitAll()
          .anyRequest()
          .authenticated()
          .and()
@@ -74,12 +66,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowCredentials(false)
+                registry.addMapping("/**")
+                		.allowCredentials(false)
+                		.allowedOrigins("*")
                         .allowedMethods("GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS")
-                        .allowedOriginPatterns("http://localhost:8081");
+                        .allowedOriginPatterns("http://192.168.3.137:3080");
             }
         };
     }
+	@Override
+	public void configure(WebSecurity web) throws Exception {
+		web.ignoring()
+		.antMatchers("/v2/api-docs",
+		"/configuration/ui",
+		"/swagger-resources/**",
+		"/configuration/security",
+		"/swagger-ui.html",
+		"/webjars/**");
+	}
+	
 	 
     }
 

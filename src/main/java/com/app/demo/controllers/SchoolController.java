@@ -23,7 +23,7 @@ import com.app.demo.models.SchoolType;
 import com.app.demo.pagination.Paging;
 import com.app.demo.services.ISchoolService;
 
-@CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin
 @RestController
 @RequestMapping(path = "/schools")
 public class SchoolController {

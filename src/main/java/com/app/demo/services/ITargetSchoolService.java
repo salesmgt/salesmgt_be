@@ -7,5 +7,5 @@ import com.app.demo.models.SchoolType;
 import com.app.demo.pagination.Paging;
 
 public interface ITargetSchoolService {
-	Paging<TargetDTO> getTargetByFilter(String key,String purpose,SchoolType type, Level educationalLevel,Scale scale,String fullName,String reprName, String district, String schoolYear, int page, int limit, String column, String direction);
+	Paging<TargetDTO> getTargetByFilter(String key,String purpose,SchoolType type, Level educationalLevel,Scale scale,String fullName, String district, String schoolYear, int page, int limit, String column, String direction);
 }

@@ -1,14 +1,16 @@
 package com.app.demo.controllers;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.demo.dtos.RequestPasswordDTO;
+import com.app.demo.dtos.RequestProfileDTO;
 import com.app.demo.dtos.UserDTO;
 import com.app.demo.pagination.Paging;
 import com.app.demo.services.IUserService;
@@ -27,23 +31,24 @@ import com.app.demo.services.IUserService;
 public class UserController {
 	@Autowired
 	private IUserService service;
-
+	
 	@PostMapping
-	public String insert(@RequestBody @Valid UserDTO dto, BindingResult bindingResult) {
-		if (!ObjectUtils.isEmpty(service.getOne(dto.getUsername()))) {
+	public String insert(@RequestBody @Valid UserDTO dto, BindingResult bindingResult) throws SQLIntegrityConstraintViolationException {
+		/*if (!ObjectUtils.isEmpty(service.getOne(dto.getUsername()))) {
 			throw new DataIntegrityViolationException("Dupplicate username");
-		} else {
+		} else {*/
 			service.insert(dto);
 			return "User inserting is done";
-		}
+		
 	}
 
-	@PutMapping
-	public String update(@RequestBody @Valid UserDTO dto, BindingResult bindingResult) {
-		if (ObjectUtils.isEmpty(service.getOne(dto.getUsername()))) {
+	@PutMapping("/{username}")
+	public String update(@PathVariable String username,
+			@RequestBody @Valid UserDTO dto, BindingResult bindingResult) throws SQLIntegrityConstraintViolationException {
+		if (ObjectUtils.isEmpty(service.getOne(username))) {
 			throw new IndexOutOfBoundsException("Could not find the username");
 		} else {
-			service.insert(dto);
+			service.update(username,dto);
 			return "User updating is done";
 		}
 	}
@@ -58,9 +63,9 @@ public class UserController {
 		}
 	}
 
-	@GetMapping("/{id}")
-	public UserDTO getOne(@PathVariable String id) {
-		UserDTO dto = service.getOne(id);
+	@GetMapping("/{username}")
+	public UserDTO getOne(@PathVariable String username) {
+		UserDTO dto = service.getOne(username);
 		if (ObjectUtils.isEmpty(dto)) {
 			throw new IndexOutOfBoundsException("Could not find the username");
 		} else {
@@ -80,4 +85,16 @@ public class UserController {
 				limit, column, direction,active,role);
 		return userPage;
 	}
+
+	@PatchMapping("/{username}")
+		public String updateProfile(@PathVariable String username, @RequestBody RequestProfileDTO dto) {
+		service.updateProfile(username, dto.getAttribute(), dto.getValue());
+		return "Updating is successfull";
+	}
+	@PostMapping("/{username}")
+	public String updateProfile(@PathVariable String username, @RequestBody RequestPasswordDTO dto) throws SQLIntegrityConstraintViolationException {
+	service.updatePassword(username, dto);
+	return "Updating is successfull";
+}
+
 }

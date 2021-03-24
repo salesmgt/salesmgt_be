@@ -15,18 +15,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.app.demo.dtos.SchoolDTO;
 import com.app.demo.dtos.TargetDTO;
-import com.app.demo.dtos.UserDTO;
 import com.app.demo.mappers.Mapper;
 import com.app.demo.models.District;
 import com.app.demo.models.District_;
 import com.app.demo.models.Level;
-import com.app.demo.models.Notification;
-import com.app.demo.models.Role_;
 import com.app.demo.models.Scale;
 import com.app.demo.models.School;
-import com.app.demo.models.SchoolStatus;
 import com.app.demo.models.SchoolType;
 import com.app.demo.models.User;
 import com.app.demo.models.User_;
@@ -44,8 +39,7 @@ import com.app.demo.services.ITargetSchoolService;
 public class TargetServiceImpl implements ITargetSchoolService {
 	@Autowired
 	private TargetRepository repo;
-	@Autowired
-	private TargetPurposeRepository purposeRepo;
+
 
 	/**
 	 * Method có chức năng tạo đối tượng Pageable bằng cách xác định chiều sort của
@@ -73,7 +67,7 @@ public class TargetServiceImpl implements ITargetSchoolService {
 		
 	}
 
-	public Paging<TargetDTO> getTargetByFilter(String key,String purpose,SchoolType type, Level educationalLevel,Scale scale, String fullName,String reprName, String district, String schoolYear, int page, int limit, String column, String direction) {
+	public Paging<TargetDTO> getTargetByFilter(String key,String purpose,SchoolType type, Level educationalLevel,Scale scale, String fullName, String district, String schoolYear, int page, int limit, String column, String direction) {
 		Page<TargetSchool> entities = (Page<TargetSchool>) repo.findAll((Specification<TargetSchool>) (root, query, builder) -> {
 			Join<TargetSchool, School> target_school = root.join(TargetSchool_.SCHOOL);
 			Join<TargetSchool, User> target_user = root.join(TargetSchool_.USER);
@@ -81,15 +75,15 @@ public class TargetServiceImpl implements ITargetSchoolService {
 			Join<School,District> school_district = target_school.join(School_.DISTRICT);
 			Predicate p = builder.conjunction();
 			if(!ObjectUtils.isEmpty(key)) {
-			p = builder.or(p, builder.like(root.get(TargetSchool_.SCHOOL_YEAR), key));
-			p = builder.or(p, builder.like(target_purpose.get(TargetPurpose_.NAME), key));		
-			p = builder.or(p, builder.like(target_user.get(User_.FULL_NAME), key));		
-			p = builder.or(p, builder.like(target_user.get(User_.USERNAME), key));
-			p = builder.or(p, builder.like(target_school.get(School_.NAME), key));
+				Predicate schoolName = builder.like(target_school.get(School_.NAME), "%" + key + "%");	
+		Predicate repr = builder.like(target_school.get(School_.REPR_NAME), "%" + key + "%");
+		Predicate fullname = builder.like(target_user.get(User_.FULL_NAME), "%" + key + "%");
+		Predicate year = builder.like(root.get(TargetSchool_.SCHOOL_YEAR), "%" + key + "%");
+		
+		Predicate username = builder.like(target_user.get(User_.USERNAME), "%" + key + "%");
+		p = builder.or(schoolName,fullname,repr,year,username);
 			}
-			if(!ObjectUtils.isEmpty(reprName)) {
-				p = builder.and(p, builder.equal(target_school.get(School_.REPR_NAME), key));
-			}
+			
 			if(!ObjectUtils.isEmpty(type)) {
 				p = builder.and(p, builder.equal(target_school.get(School_.TYPE), type));
 			}
@@ -118,6 +112,8 @@ public class TargetServiceImpl implements ITargetSchoolService {
 				dto.setPurpose(item.getTargetPurpose().getName());
 				dto.setSchoolName(item.getSchool().getName());
 				dto.setDistrict(item.getSchool().getDistrict().getName());
+				dto.setReprGender(item.getSchool().isReprGender());
+				dto.setReprName(item.getSchool().getReprName());
 				dto.setAvatar(item.getUser().getAvatar());
 				dto.setFullName(item.getUser().getFullName());
 				dto.setUsername(item.getUser().getUsername());

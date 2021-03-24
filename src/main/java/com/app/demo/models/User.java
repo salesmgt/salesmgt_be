@@ -71,7 +71,5 @@ public class User extends Auditable<String> {
 	private Role role;
 	
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-	private List<Notification> notifies;
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<PersonalActivity> personalActivities;
 }

@@ -20,13 +20,14 @@ public class ExceptionHandlerController {
 	/**
 	 * Tất cả các Exception không được khai báo sẽ được xử lí tại đây
 	 */
-	/*@ExceptionHandler(Exception.class)
+	/*
+	@ExceptionHandler(Exception.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorMessage handleAllException(Exception ex, WebRequest request) {
         // quá trình kiểm soat lỗi diễn ra ở đây
         return new ErrorMessage(10000, ex.toString());
     }
-	
+	*/
 	 /**
      * IndexOutOfBoundsException sẽ được xử lý riêng tại đây
      */
@@ -77,4 +78,5 @@ public class ExceptionHandlerController {
        }
        
 */
+	
 }

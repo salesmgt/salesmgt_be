@@ -1,7 +1,7 @@
 package com.app.demo.dtos;
 
 import java.util.Date;
-import java.util.List;
+
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -16,7 +16,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO extends AuditableDTO {
+public class UserDTO {
 	
 	private String username;
 	

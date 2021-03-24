@@ -3,6 +3,8 @@ package com.app.demo.controllers;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +22,7 @@ import com.app.demo.dtos.JwtResponse;
 import com.app.demo.securities.JwtTokenProvider;
 import com.app.demo.securities.MyUserDetails;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin 	
 @RestController
 @RequestMapping(path="/access-tokens")
 public class AuthController {
@@ -30,7 +32,7 @@ public class AuthController {
 		private JwtTokenProvider tokenProvider;
 		
 		@PostMapping
-		public JwtResponse authenticateUser(@RequestBody AuthDTO loginRequest) {
+		public JwtResponse authenticateUser(@RequestBody AuthDTO loginRequest, HttpServletResponse response) {
 			// Xác thực từ username và password
 			Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
@@ -44,7 +46,16 @@ public class AuthController {
 			MyUserDetails userDetails =  (MyUserDetails) authentication.getPrincipal();
 			List<String> roles = userDetails.getAuthorities().stream()
 					.map(item -> item.getAuthority()).collect(Collectors.toList());
+			
 			String jwt = tokenProvider.generateToken((userDetails));
+			Cookie cookie = new Cookie("access_token", jwt);
+			cookie.setSecure(false);
+			cookie.setHttpOnly(true);
+			cookie.setMaxAge(604800); //7 days
+			response.addCookie(cookie);
+			
+			
+			
 			return new JwtResponse(jwt, userDetails.getUsername(), roles);		
 		}
 }
