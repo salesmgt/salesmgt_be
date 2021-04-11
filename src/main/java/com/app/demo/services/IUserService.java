@@ -2,9 +2,9 @@ package com.app.demo.services;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 
+import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.UserDTO;
-import com.app.demo.pagination.Paging;
 
 public interface IUserService {
 	void insert(UserDTO dto) throws SQLIntegrityConstraintViolationException;
@@ -13,5 +13,5 @@ public interface IUserService {
     void update(String username, UserDTO dto) throws SQLIntegrityConstraintViolationException;
 	UserDTO getOne(String username);
 	void updateProfile(String username, String attribute, String value);
-	Paging<UserDTO> getUserByFilter(String key,int page, int limit, String column, String direction, boolean isActive, String role);
+	Paging<UserDTO> getUserByFilter(String key,int page, int limit, String column, String direction, boolean isActive, String role,String fullName);
 }

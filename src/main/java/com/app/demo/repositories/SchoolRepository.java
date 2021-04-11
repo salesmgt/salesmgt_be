@@ -9,5 +9,4 @@ import com.app.demo.models.School;
 @Repository
 public interface SchoolRepository extends JpaRepository<School, Integer>, JpaSpecificationExecutor<School> {
 	boolean existsByPhone(String phone);
-	boolean existsByEmail(String email);
-}
+	}

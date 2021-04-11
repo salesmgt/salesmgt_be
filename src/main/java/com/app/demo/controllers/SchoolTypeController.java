@@ -13,13 +13,13 @@ import com.app.demo.models.SchoolType;
 
 @CrossOrigin
 @RestController
-@RequestMapping(path = "/school-type")
+@RequestMapping(path = "/types")
 public class SchoolTypeController {
 
 	@GetMapping
 	public List<String> getType(){
-	return Stream.of(SchoolType.values())
-    .map(SchoolType::name)
-    .collect(Collectors.toList());
+		return  Stream.of(SchoolType.values())
+                .map(SchoolType::getValues) // map using 'getValue'
+                .collect(Collectors.toList());
 	}
 }

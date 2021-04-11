@@ -13,13 +13,15 @@ import javax.persistence.ManyToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @AllArgsConstructor
 @Getter
 @Setter
-public class Report extends Auditable {
+@NoArgsConstructor
+public class Report extends Auditable<String> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "report_id") 

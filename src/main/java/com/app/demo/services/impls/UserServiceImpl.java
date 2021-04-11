@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.UserDTO;
 import com.app.demo.emails.EmailSenderService;
@@ -26,13 +27,13 @@ import com.app.demo.models.Role;
 import com.app.demo.models.Role_;
 import com.app.demo.models.User;
 import com.app.demo.models.User_;
-import com.app.demo.pagination.Paging;
 import com.app.demo.repositories.RoleRepository;
 import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.IUserService;
 
 @Service
 public class UserServiceImpl implements IUserService {
+	
 	@Autowired
 	private RoleRepository roleRepo;
 	@Autowired
@@ -47,7 +48,8 @@ public class UserServiceImpl implements IUserService {
 		dto.setPasswordHash(null);
 		return dto;
 	}
-  public void update(String username, UserDTO dto) throws SQLIntegrityConstraintViolationException {
+	@Override
+	public void update(String username, UserDTO dto) throws SQLIntegrityConstraintViolationException {
 	  User entity = repo.findByUsername(username);
 	  if (!ObjectUtils.isEmpty(entity)) {
 		  entity.setAddress(dto.getAddress());
@@ -86,6 +88,7 @@ public class UserServiceImpl implements IUserService {
 		} 
 		
 	}
+	
 
 	/*
 	 * user.setPasswordHash(bcrypt.encode(dto.getPasswordHash()));
@@ -103,7 +106,7 @@ public class UserServiceImpl implements IUserService {
 
 	private Pageable paging(int page, int limit, String column, String direction) {
 		Pageable paging;
-		if (direction.equalsIgnoreCase("DES")) {
+		if (direction.equalsIgnoreCase("DESC")) {
 			paging = PageRequest.of(page, limit, Sort.by(column).descending());
 		} else {
 			paging = PageRequest.of(page, limit, Sort.by(column).ascending());
@@ -113,24 +116,35 @@ public class UserServiceImpl implements IUserService {
 
 	@Override
 	public Paging<UserDTO> getUserByFilter(String key, int page, int limit, String column, String direction,
-			boolean isActive, String role) {
+			boolean isActive, String role, String fullName) {
 
 		Page<User> entities = (Page<User>) repo.findAll((Specification<User>) (root, query, builder) -> {
 			Join<User, Role> user_role = root.join(User_.ROLE);
 			Predicate p = builder.conjunction();
-			if (!ObjectUtils.isEmpty(key)) {
+			if (!ObjectUtils.isEmpty(key) ) {
 				Predicate username = builder.like(root.get(User_.USERNAME), "%" + key + "%");
-				Predicate fullname = builder.like(root.get(User_.FULL_NAME), "%" + key + "%");
+				
+				if(ObjectUtils.isEmpty(fullName)) {
+				Predicate name= builder.like(root.get(User_.FULL_NAME), "%" + key + "%");
+				 username = builder.or(username, name);
+				}
 				Predicate address = builder.like(root.get(User_.ADDRESS), "%" + key + "%");
 				Predicate email = builder.like(root.get(User_.EMAIL), "%" + key + "%");
 				Predicate phone = builder.like(root.get(User_.PHONE), "%" + key + "%");
-				p = builder.or(username, fullname, address, email, phone);
+				p = builder.or(username, address, email, phone);
 			}
 			if (!ObjectUtils.isEmpty(isActive)) {
+				if(isActive)
 				p = builder.and(p, builder.isTrue(root.get(User_.ACTIVE)));
+				else
+				p = builder.and(p, builder.isFalse(root.get(User_.ACTIVE)));
 			}
 			if (!ObjectUtils.isEmpty(role)) {
 				p = builder.and(p, builder.equal(user_role.get(Role_.NAME), role));
+			}
+			if(!ObjectUtils.isEmpty(fullName)) {
+				p = builder.and(p,builder.like(root.get(User_.FULL_NAME), "%" + fullName + "%"));
+				
 			}
 			return p;
 		}, paging(page, limit, column, direction));
@@ -194,5 +208,6 @@ public class UserServiceImpl implements IUserService {
 		}else
 			throw new SQLIntegrityConstraintViolationException("cant not found this user");
 	}
+	
 
 }

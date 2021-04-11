@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.RequestProfileDTO;
 import com.app.demo.dtos.UserDTO;
-import com.app.demo.pagination.Paging;
 import com.app.demo.services.IUserService;
 
 @CrossOrigin
@@ -80,21 +80,22 @@ public class UserController {
 										@RequestParam(defaultValue = "username")String column,
 										@RequestParam(defaultValue = "ASC")String direction,
 										@RequestParam(required = false) boolean active, 
+										@RequestParam(required = false) String fullName, 
 										@RequestParam(required = false) String role) {
 		Paging<UserDTO> userPage = service.getUserByFilter(key, page,
-				limit, column, direction,active,role);
+				limit, column, direction,active,role,fullName);
 		return userPage;
 	}
 
 	@PatchMapping("/{username}")
-		public String updateProfile(@PathVariable String username, @RequestBody RequestProfileDTO dto) {
+	public String updateProfile(@PathVariable String username, @RequestBody RequestProfileDTO dto) {
 		service.updateProfile(username, dto.getAttribute(), dto.getValue());
 		return "Updating is successfull";
 	}
 	@PostMapping("/{username}")
 	public String updateProfile(@PathVariable String username, @RequestBody RequestPasswordDTO dto) throws SQLIntegrityConstraintViolationException {
-	service.updatePassword(username, dto);
-	return "Updating is successfull";
-}
+		service.updatePassword(username, dto);
+		return "Updating is successfull";
+	}
 
 }

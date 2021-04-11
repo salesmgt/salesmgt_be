@@ -9,17 +9,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.app.demo.models.Level;
+import com.app.demo.models.Scale;
 
 @CrossOrigin
 @RestController
-@RequestMapping(path = "/levels")
-public class LevelController {
-
+@RequestMapping(path = "/scales")
+public class ScaleController {
 	@GetMapping
-	public List<String> getLevels(){
-	return Stream.of(Level.values())
-    .map(Level::getValues)
+	public List<String> getScales(){
+	return Stream.of(Scale.values())
+    .map(Scale::name)
     .collect(Collectors.toList());
-}
+	}
 }

@@ -31,7 +31,7 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 	@Query(value= "update user u set u.user_avatar = :value where u.username = :username", nativeQuery = true)
 	void updateAvatar(String username,  String value);
 	
-	@Query(value = "SELECT * FROM user u WHERE u.password_hash = :password and u.username = :username", 
+	@Query(value = "SELECT u FROM user u WHERE u.password_hash = :password and u.username = :username", 
 			  nativeQuery = true)
 	User findUserByHashPasswordAndUsername(
 			  @Param("password") String password, @Param("username") String username);

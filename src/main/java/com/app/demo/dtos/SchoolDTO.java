@@ -9,12 +9,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class SchoolDTO {
+public class SchoolDTO extends AuditableDTO {
 	private int id;
 	@NotNull
 	private String name;
@@ -23,8 +22,6 @@ public class SchoolDTO {
 	@NotNull
 	@Size(min=10, max=11)
 	private String phone;
-	@Email(message = "Email should be valid")
-	private String email;
 	@NotNull
 	private String educationalLevel;
 	@NotNull

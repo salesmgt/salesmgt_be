@@ -69,8 +69,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 registry.addMapping("/**")
                 		.allowCredentials(false)
                 		.allowedOrigins("*")
-                        .allowedMethods("GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS")
-                        .allowedOriginPatterns("http://192.168.3.137:3080");
+                        .allowedMethods("GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS");
             }
         };
     }
@@ -83,9 +82,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		"/configuration/security",
 		"/swagger-ui.html",
 		"/webjars/**");
-	}
-	
-	 
+	}	 
     }
 
 	

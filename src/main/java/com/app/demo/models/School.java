@@ -45,9 +45,6 @@ public class School extends Auditable<String> {
 	@Column(name = "school_phone")
 	private String phone;
 
-	@Column(name = "school_email")
-	private String email;
-
 	@Enumerated(EnumType.ORDINAL)
 	private Level educationalLevel;
 

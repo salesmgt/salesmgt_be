@@ -1,4 +1,4 @@
-package com.app.demo.pagination;
+package com.app.demo.dtos;
 
 import java.io.Serializable;
 import java.util.List;

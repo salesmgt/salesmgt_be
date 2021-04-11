@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.SchoolDTO;
 import com.app.demo.models.Level;
 import com.app.demo.models.Scale;
 import com.app.demo.models.SchoolType;
-import com.app.demo.pagination.Paging;
 import com.app.demo.services.ISchoolService;
 
 @CrossOrigin
@@ -63,12 +63,12 @@ public class SchoolController {
 	 */
 	@GetMapping
 	public Paging<SchoolDTO> getSchoolByFilter(@RequestParam(required = false) String district,
-			@RequestParam(required = false) String status, @RequestParam(required = false) SchoolType type,
-			@RequestParam(required = false) Level level, @RequestParam(required = false) Scale scale,
+			@RequestParam(required = false) String status, @RequestParam(required = false) String type,
+			@RequestParam(required = false) String level, @RequestParam(required = false) Scale scale,
 			@RequestParam(required = false) String key, @RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "5") int limit, @RequestParam(defaultValue = "id") String column,
+			@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "id") String column,
 			@RequestParam(defaultValue = "ASC") String direction) {
-		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolByFilter(district, status, type, level, scale, key, page,
+		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolByFilter(district, status, SchoolType.valueOfLabel(type),Level.valueOfLabel(level), scale, key, page,
 				limit, column, direction);
 		return schoolPage;
 	}

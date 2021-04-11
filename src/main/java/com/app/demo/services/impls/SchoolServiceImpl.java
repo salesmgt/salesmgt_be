@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.SchoolDTO;
 import com.app.demo.mappers.Mapper;
 import com.app.demo.models.Level;
@@ -26,7 +27,6 @@ import com.app.demo.models.District;
 import com.app.demo.models.District_;
 import com.app.demo.models.SchoolType;
 import com.app.demo.models.School_;
-import com.app.demo.pagination.Paging;
 import com.app.demo.repositories.DistrictRepository;
 import com.app.demo.repositories.SchoolRepository;
 import com.app.demo.repositories.SchoolStatusRepository;
@@ -55,7 +55,7 @@ public class SchoolServiceImpl implements ISchoolService {
 	 */
 	private Pageable paging(int page, int limit, String column, String direction) {
 		Pageable paging;
-		if (direction.equalsIgnoreCase("DES")) {
+		if (direction.equalsIgnoreCase("DESC")) {
 			paging = PageRequest.of(page, limit, Sort.by(column).descending());
 		}
 		else {
@@ -121,6 +121,8 @@ public class SchoolServiceImpl implements ISchoolService {
 				SchoolDTO dto = Mapper.getMapper().map(school, SchoolDTO.class);
 				dto.setDistrict(school.getDistrict().getName());
 				dto.setStatus(school.getSchoolStatus().getName());
+				dto.setEducationalLevel(school.getEducationalLevel().getValues());
+				dto.setType(school.getType().getValues());
 				results.add(dto);
 				});
 			schoolPage.setList(results);
@@ -137,7 +139,9 @@ public class SchoolServiceImpl implements ISchoolService {
 	 */
 	@Override
 	public void insert(SchoolDTO dto) {		
-			School entity = Mapper.getMapper().map(dto, School.class);				
+			School entity = Mapper.getMapper().map(dto, School.class);	
+			entity.setType(SchoolType.valueOfLabel(dto.getType()));
+			entity.setEducationalLevel(Level.valueOfLabel(dto.getEducationalLevel()));
 			entity.setDistrict(districtRepo.findByName(dto.getDistrict()));
 			entity.setSchoolStatus(statusRepo.findByName(dto.getStatus()));
 			entity.setActive(true);
@@ -146,7 +150,9 @@ public class SchoolServiceImpl implements ISchoolService {
 		
 	 public void update(SchoolDTO dto) {
 		 if(repo.existsById(dto.getId())) {
-			 School entity = Mapper.getMapper().map(dto, School.class);				
+			 School entity = Mapper.getMapper().map(dto, School.class);		
+			 entity.setType(SchoolType.valueOfLabel(dto.getType()));
+				entity.setEducationalLevel(Level.valueOfLabel(dto.getEducationalLevel()));
 				entity.setDistrict(districtRepo.findByName(dto.getDistrict()));
 				entity.setSchoolStatus(statusRepo.findByName(dto.getStatus()));
 				entity.setActive(true);

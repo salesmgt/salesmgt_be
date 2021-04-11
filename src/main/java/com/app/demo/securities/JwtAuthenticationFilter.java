@@ -34,15 +34,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	try {
 		//Lấy jwt từ request ra nè
 		String jwt = getJwtFromRequest(request);
-		System.out.println("request jwt: "+jwt);
 		if(StringUtils.hasText(jwt)&& tokenProvider.validateToken(jwt)) {
-			System.out.println("request jwt222: "+jwt);
 			//Lấy user id từ chuỗi jwt
 			String username = tokenProvider.getUsernameFromJWT(jwt);
 			
 			//Lấy thông tin người dùng từ id
 			UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-			System.out.println("userdetails: "+userDetails.getUsername());
 			if(!ObjectUtils.isEmpty(userDetails)){
 				
 				//Nếu người dùng hợp lệ, set thông tin cho Security Context
@@ -62,7 +59,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		 String bearerToken = request.getHeader("Authorization");
 	        // Kiểm tra xem header Authorization có chứa thông tin jwt không
 	        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-	        	System.out.println("token gui ve client: "+bearerToken.substring(7));
 	            return bearerToken.substring(7);
 	        }
 		return null;

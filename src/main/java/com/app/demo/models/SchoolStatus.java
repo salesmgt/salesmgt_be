@@ -4,10 +4,13 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +23,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SchoolStatus {
+@EntityListeners(AuditingEntityListener.class)
+public class SchoolStatus extends Auditable<String> {
 
 	@Id
 	@Column(name = "school_status_id")

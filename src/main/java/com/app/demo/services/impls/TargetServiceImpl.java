@@ -15,6 +15,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.app.demo.dtos.LocationCard;
+import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.TargetDTO;
 import com.app.demo.mappers.Mapper;
 import com.app.demo.models.District;
@@ -30,15 +32,17 @@ import com.app.demo.models.TargetPurpose_;
 import com.app.demo.models.School_;
 import com.app.demo.models.TargetSchool;
 import com.app.demo.models.TargetSchool_;
-import com.app.demo.pagination.Paging;
-import com.app.demo.repositories.TargetPurposeRepository;
 import com.app.demo.repositories.TargetRepository;
+import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.ITargetSchoolService;
 
 @Service
 public class TargetServiceImpl implements ITargetSchoolService {
 	@Autowired
 	private TargetRepository repo;
+	
+	@Autowired
+	private UserRepository userRepo;
 
 
 	/**
@@ -56,17 +60,16 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	 */
 	private Pageable paging(int page, int limit, String column, String direction) {
 		Pageable paging;
-		if (direction.equalsIgnoreCase("DES")) {
+		if (direction.equalsIgnoreCase("DESC")) {
+			
 			paging = PageRequest.of(page, limit, Sort.by(column).descending());
 		} else {
 			paging = PageRequest.of(page, limit, Sort.by(column).ascending());
 		}
 		return paging;
 	}
-	public void insert(TargetDTO dto) {
-		
-	}
-
+	
+	@Override
 	public Paging<TargetDTO> getTargetByFilter(String key,String purpose,SchoolType type, Level educationalLevel,Scale scale, String fullName, String district, String schoolYear, int page, int limit, String column, String direction) {
 		Page<TargetSchool> entities = (Page<TargetSchool>) repo.findAll((Specification<TargetSchool>) (root, query, builder) -> {
 			Join<TargetSchool, School> target_school = root.join(TargetSchool_.SCHOOL);
@@ -76,12 +79,11 @@ public class TargetServiceImpl implements ITargetSchoolService {
 			Predicate p = builder.conjunction();
 			if(!ObjectUtils.isEmpty(key)) {
 				Predicate schoolName = builder.like(target_school.get(School_.NAME), "%" + key + "%");	
-		Predicate repr = builder.like(target_school.get(School_.REPR_NAME), "%" + key + "%");
-		Predicate fullname = builder.like(target_user.get(User_.FULL_NAME), "%" + key + "%");
-		Predicate year = builder.like(root.get(TargetSchool_.SCHOOL_YEAR), "%" + key + "%");
-		
-		Predicate username = builder.like(target_user.get(User_.USERNAME), "%" + key + "%");
-		p = builder.or(schoolName,fullname,repr,year,username);
+				Predicate repr = builder.like(target_school.get(School_.REPR_NAME), "%" + key + "%");
+				Predicate fullname = builder.like(target_user.get(User_.FULL_NAME), "%" + key + "%");
+				Predicate year = builder.like(root.get(TargetSchool_.SCHOOL_YEAR), "%" + key + "%");		
+				Predicate username = builder.like(target_user.get(User_.USERNAME), "%" + key + "%");
+				p = builder.or(schoolName,fullname,repr,year,username);
 			}
 			
 			if(!ObjectUtils.isEmpty(type)) {
@@ -92,6 +94,9 @@ public class TargetServiceImpl implements ITargetSchoolService {
 			}
 			if(!ObjectUtils.isEmpty(scale)) {
 				p = builder.and(p, builder.equal(target_school.get(School_.SCALE), scale));
+			}
+			if(!ObjectUtils.isEmpty(schoolYear)) {
+				p = builder.and(p, builder.equal(root.get(TargetSchool_.SCHOOL_YEAR), schoolYear));
 			}
 			if(!ObjectUtils.isEmpty(district)) {
 				p = builder.and(p, builder.equal(school_district.get(District_.NAME),district));
@@ -114,9 +119,20 @@ public class TargetServiceImpl implements ITargetSchoolService {
 				dto.setDistrict(item.getSchool().getDistrict().getName());
 				dto.setReprGender(item.getSchool().isReprGender());
 				dto.setReprName(item.getSchool().getReprName());
+				dto.setReprEmail(item.getSchool().getReprEmail());
+				dto.setReprPhone(item.getSchool().getReprPhone());
+				dto.setUserPhone(item.getUser().getPhone());
+				dto.setUserEmail(item.getUser().getEmail());
 				dto.setAvatar(item.getUser().getAvatar());
 				dto.setFullName(item.getUser().getFullName());
 				dto.setUsername(item.getUser().getUsername());
+				dto.setLevel(item.getSchool().getEducationalLevel().getValues());
+				dto.setSchoolDescription(item.getSchool().getDescription());
+				dto.setSchoolScale(item.getSchool().getScale());
+				dto.setSchoolAddress(item.getSchool().getAddress());
+				dto.setSchoolType(item.getSchool().getType().getValues());
+				dto.setSchoolId(item.getSchool().getId());
+				dto.setPurpose(item.getTargetPurpose().getName());
 				results.add(dto);
 			});
 			targetPage.setList(results);
@@ -124,8 +140,52 @@ public class TargetServiceImpl implements ITargetSchoolService {
 			targetPage.setTotalPage(entities.getTotalPages());
 		}
 		return targetPage;
+	}
+	@Override
+	public void assign(int targetId, String username) {
+		if(repo.existsById(targetId)){
+			repo.assign(targetId, username);
+		}			
+	}
+	public void insert(TargetDTO dto) {
 		
 	}
-
-
-}
+	@Override
+	public List<String> getSchoolYear(){
+			return repo.getSchoolYears();
+	}
+	@Override
+	public List<LocationCard> getTargetSchoolName(String username, String key){
+		Page<TargetSchool> entities = (Page<TargetSchool>) repo.findAll((Specification<TargetSchool>) (root, query, builder) -> {
+			Join<TargetSchool, School> target_school = root.join(TargetSchool_.SCHOOL);
+			Join<TargetSchool, User> target_user = root.join(TargetSchool_.USER);
+			Predicate p = builder.conjunction();
+			if(!ObjectUtils.isEmpty(key)) {
+				p = builder.like(target_school.get(School_.NAME), "%" + key + "%");
+				query.distinct(true);
+			}
+			if(!ObjectUtils.isEmpty(username)) {
+				p = builder.and(p, builder.equal(target_user.get(User_.USERNAME), username));
+			}
+			return p;
+		}, paging(0, 3, "id", "DESC"));
+		List<LocationCard> results = new ArrayList<LocationCard>();
+		User user = userRepo.findByUsername(username);
+		results.add(new LocationCard(-1,"Home (default)",user.getAddress()));
+		results.add(new LocationCard(0,"Company (default)","Major Education"));
+		if (entities.hasContent()) {
+			entities.getContent().forEach(item -> {
+				LocationCard dto = new LocationCard();	
+				dto.setId(item.getId());
+				dto.setSchoolName(item.getSchool().getName());
+				dto.setDistrict(item.getSchool().getDistrict().getName());
+				results.add(dto);
+			});
+			}
+			return results;
+	}
+	@Override
+	public List<String> getSchoolYearBySchoolId(int id) {
+		return repo.getSchoolYearsBySchoolId(id);
+	}
+	}

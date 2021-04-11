@@ -10,6 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,21 +23,28 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class PersonalActivity extends Auditable {
+public class PersonalActivity extends Auditable<String> {
 	@Id
 	@Column(name = "personal_activity_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	@Column
 	private String title;
-	@Column
-	private Date startTime;
-	@Column
+	private String location;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date startTime;	
+	@Column(name ="recurrence_id")
+	private int recurrenceID;
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date endTime;
 	@Column
 	private String remark;
 	@Column(name = "activity_description")
 	private String description;
+	private String recurrenceRule;
+	@Column(name = "recurrence_exception")
+	private String recurrenceException;
+	private boolean isAllDay;
 	@Column
 	private boolean isCompleted;
 	
