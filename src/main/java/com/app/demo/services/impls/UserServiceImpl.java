@@ -52,16 +52,17 @@ public class UserServiceImpl implements IUserService {
 	public void update(String username, UserDTO dto) throws SQLIntegrityConstraintViolationException {
 	  User entity = repo.findByUsername(username);
 	  if (!ObjectUtils.isEmpty(entity)) {
-		  entity.setAddress(dto.getAddress());
-		  entity.setBirthDate(dto.getBirthDate());
-		  entity.setEmail(dto.getEmail());
-		  entity.setFullName(dto.getFullName());
-		  entity.setGender(dto.isGender());
-		  entity.setPhone(dto.getPhone());
+		entity.setUsername(username);
 		  if (!entity.getRole().getName().equalsIgnoreCase(dto.getRoleName())) {
 		  Role role = roleRepo.findByName(dto.getRoleName());
 		  entity.setRole(role);
 		  }
+		  entity.setFullName(dto.getFullName());
+		  entity.setAddress(dto.getAddress());
+		  entity.setActive(dto.isActive());
+		  entity.setMale(dto.isMale());
+		  entity.setPhone(dto.getPhone());
+		  entity.setBirthDate(dto.getBirthDate());
 		  repo.save(entity);
 	  }else 
 		  throw new SQLIntegrityConstraintViolationException("cant found this user");
@@ -85,17 +86,8 @@ public class UserServiceImpl implements IUserService {
 			email.sendSimpleEmail(dto.getEmail(),dto.getFullName(), code);
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
-		
+		} 	
 	}
-	
-
-	/*
-	 * user.setPasswordHash(bcrypt.encode(dto.getPasswordHash()));
-	 * user.setAddress(dto.getAddress()); user.setBirthDate(dto.getBirthDate());
-	 * user.setFullName(dto.getFullName()); user.setAvatar(dto.getAvatar());
-	 * user.setEmail(dto.getEmail()); user.setEmail(dto.getEmail());
-	 */
 	@Override
 	public void delete(String id) {
 		User user = repo.findByUsername(id);
@@ -177,7 +169,7 @@ public class UserServiceImpl implements IUserService {
 			break;
 			case "avatar": repo.updateAvatar(username, value);
 			break;
-			default: throw new NullPointerException("Cant not update");
+			default: throw new NullPointerException("Can not update");
 			}
 		}
 	}

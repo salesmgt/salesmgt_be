@@ -35,23 +35,23 @@ public class School extends Auditable<String> {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "school_id")
 	private int id;
-
-	@Column(name = "school_name")
+	
+	@Column(name = "school_name",length = 50)
 	private String name;
 
 	@Column(name = "school_address")
 	private String address;
-
-	@Column(name = "school_phone")
+	
+	@Column(name = "school_phone",length = 15)
 	private String phone;
-
+	
 	@Enumerated(EnumType.ORDINAL)
 	private Level educationalLevel;
-
+	
 	@Enumerated(EnumType.ORDINAL)
 	@Column(name = "school_scale")
 	private Scale scale;
-
+	
 	@Column(name = "school_type")
 	@Enumerated(EnumType.ORDINAL)
 	private SchoolType type;
@@ -70,8 +70,8 @@ public class School extends Auditable<String> {
 	@Column(name = "representative_email")
 	private String reprEmail;
 
-	@Column(name = "representative_gender")
-	private boolean reprGender;
+	@Column(name = "representative_is_male")
+	private boolean reprIsMale;
 
 	@OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
 	private List<TargetSchool> targetSchools;

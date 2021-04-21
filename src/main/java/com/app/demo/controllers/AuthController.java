@@ -34,11 +34,16 @@ public class AuthController {
 		@PostMapping
 		public JwtResponse authenticateUser(@RequestBody AuthDTO loginRequest, HttpServletResponse response) {
 			// Xác thực từ username và password
-			Authentication authentication = authenticationManager.authenticate(
+			Authentication authentication = null;
+			try {
+			 authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
                         loginRequest.getPassword())
-			);		
+			);}catch(Exception e) {
+				throw new RuntimeException();
+			}
+					;		
 			// Nếu không xảy ra exception tức là thông tin hợp lệ
 	        // Set thông tin authentication vào Security Context			
 			SecurityContextHolder.getContext().setAuthentication(authentication);			

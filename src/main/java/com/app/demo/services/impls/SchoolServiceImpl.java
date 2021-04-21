@@ -1,9 +1,11 @@
 package com.app.demo.services.impls;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,8 @@ import com.app.demo.models.District;
 import com.app.demo.models.District_;
 import com.app.demo.models.SchoolType;
 import com.app.demo.models.School_;
+import com.app.demo.models.TargetSchool;
+import com.app.demo.models.TargetSchool_;
 import com.app.demo.repositories.DistrictRepository;
 import com.app.demo.repositories.SchoolRepository;
 import com.app.demo.repositories.SchoolStatusRepository;
@@ -81,7 +85,7 @@ public class SchoolServiceImpl implements ISchoolService {
 	 */
 	@Override
 	public Paging<SchoolDTO> getSchoolByFilter(String district, String status, SchoolType type, Level educationalLevel,Scale scale,String key,
-												int page, int limit, String column, String direction){		
+												String schoolYear,int page, int limit, String column, String direction){		
 		Page<School> pageEntities = (Page<School>) repo.findAll((Specification<School>) (root, query,criteriaBuilder) -> {
 			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
 			Join<School, District> school = root.join(School_.DISTRICT);
@@ -103,6 +107,9 @@ public class SchoolServiceImpl implements ISchoolService {
 			}
 			if (!ObjectUtils.isEmpty(type)) {
 				p = criteriaBuilder.and(p,criteriaBuilder.equal(root.get(School_.TYPE), type));
+			}
+			if (!ObjectUtils.isEmpty(schoolYear)) {
+				p = criteriaBuilder.and(p,criteriaBuilder.notEqual(school_status.get(TargetSchool_.SCHOOL_YEAR), schoolYear));
 			}
 			if (!ObjectUtils.isEmpty(status)) {
 				p = criteriaBuilder.and(p,criteriaBuilder.equal(school_status.get(SchoolStatus_.NAME), status));
@@ -136,9 +143,10 @@ public class SchoolServiceImpl implements ISchoolService {
 	 * This method is used to insert school data into database.
 	 * @param dto: SchoolDTO object.
 	 * @return boolean (true - success/ false - exception) 
+	 * @throws SQLIntegrityConstraintViolationException 
 	 */
 	@Override
-	public void insert(SchoolDTO dto) {		
+	public void insert(SchoolDTO dto)  {	
 			School entity = Mapper.getMapper().map(dto, School.class);	
 			entity.setType(SchoolType.valueOfLabel(dto.getType()));
 			entity.setEducationalLevel(Level.valueOfLabel(dto.getEducationalLevel()));
@@ -148,27 +156,89 @@ public class SchoolServiceImpl implements ISchoolService {
 			repo.save(entity);
 			}
 		
-	 public void update(SchoolDTO dto) {
-		 if(repo.existsById(dto.getId())) {
+	@Override
+	 public void update(int id,SchoolDTO dto) {
+		 if(repo.existsById(id)) {
 			 School entity = Mapper.getMapper().map(dto, School.class);		
 			 entity.setType(SchoolType.valueOfLabel(dto.getType()));
+			 entity.setId(id);
 				entity.setEducationalLevel(Level.valueOfLabel(dto.getEducationalLevel()));
 				entity.setDistrict(districtRepo.findByName(dto.getDistrict()));
 				entity.setSchoolStatus(statusRepo.findByName(dto.getStatus()));
-				entity.setActive(true);
-				repo.save(entity);
+				System.out.println(repo.save(entity).getName());
 		 }
 	 }
 	 /**
 	  * This method is used to delete a school by id - update isActive(false) column in database.
 	  * @param int id: id of school.
-	  * @return boolean true.
 	  * @exception if fail, throw the exception at controller to process.  
 	  */
+	@Override
 	 public void delete(int id) {
 		 School entity = repo.getOne(id);
 		 entity.setActive(false);
 		 repo.save(entity);
 	 }
+	@Override
+	 public SchoolDTO getOne(int id) {
+		 School school =  repo.getOne(id);
+			SchoolDTO dto = Mapper.getMapper().map(school, SchoolDTO.class);
+			dto.setDistrict(school.getDistrict().getName());
+			dto.setStatus(school.getSchoolStatus().getName());
+			dto.setEducationalLevel(school.getEducationalLevel().getValues());
+			dto.setType(school.getType().getValues());
+			return dto;
+	 }
+	@Override
+	 public int saveAll(List<SchoolDTO> dtos) {
+		 List<School> entities = new ArrayList<>();
+		 dtos.forEach( dto -> {
+			 School entity = Mapper.getMapper().map(dto, School.class);	
+				entity.setType(SchoolType.valueOfLabel(dto.getType()));
+				entity.setEducationalLevel(Level.valueOfLabel(dto.getEducationalLevel()));
+				entity.setDistrict(districtRepo.findByName(dto.getDistrict()));
+				entity.setSchoolStatus(statusRepo.findByName(dto.getStatus()));
+				entity.setActive(true);
+				entities.add(entity);
+		 });
+		return repo.saveAll(entities).size();
+	 }
+	public Paging<SchoolDTO> getSchoolForTarget(String district, String status, String type, String level,Scale scale,
+			String schoolYear,int page, int limit, String column, String direction) {
+		Page<School> pageEntities = (Page<School>)repo.findAll((Specification<School>) (root, query, builder) -> {
+			Join<School,TargetSchool> target_school = root.join(School_.TARGET_SCHOOLS,JoinType.LEFT);
+			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
+			Join<School, District> school = root.join(School_.DISTRICT);
+			Predicate p = builder.conjunction();
+			if(!ObjectUtils.isEmpty(district))
+				p = builder.and(p, builder.equal(school.get(District_.NAME), district));
+			if(!ObjectUtils.isEmpty(status))
+				p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME),status));
+			if(!ObjectUtils.isEmpty(level))
+				p = builder.and(p, builder.equal(root.get(School_.EDUCATIONAL_LEVEL), Level.valueOfLabel(level)));
+			if(!ObjectUtils.isEmpty(scale))
+				p = builder.and(p, builder.equal(root.get(School_.SCALE), scale));	
+			if(!ObjectUtils.isEmpty(type))
+				p = builder.and(p, builder.equal(root.get(School_.TYPE), SchoolType.valueOfLabel(type)));		
+			p = builder.and(p, builder.notEqual(target_school.get(TargetSchool_.SCHOOL_YEAR), schoolYear));
+			return p;			
+		}, paging(page, limit, column, direction));
+		List<SchoolDTO> results = new ArrayList<SchoolDTO>();
+		Paging<SchoolDTO> schoolPage = new Paging<SchoolDTO>();
+		if (pageEntities.hasContent()) {
+			pageEntities.getContent().forEach(school -> {
+				SchoolDTO dto = Mapper.getMapper().map(school, SchoolDTO.class);
+				dto.setDistrict(school.getDistrict().getName());
+				dto.setStatus(school.getSchoolStatus().getName());
+				dto.setEducationalLevel(school.getEducationalLevel().getValues());
+				dto.setType(school.getType().getValues());
+				results.add(dto);
+				});
+			schoolPage.setList(results);
+			schoolPage.setTotalElements(pageEntities.getTotalElements());
+			schoolPage.setTotalPage(pageEntities.getTotalPages());
+		}
+		return schoolPage;	
+}
 }
 

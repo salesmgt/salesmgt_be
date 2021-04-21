@@ -38,7 +38,7 @@ public class MyUserDetails implements UserDetails {
 		authorities.add(authority);
 		return authorities;
 	}
-
+	
 	@Override
 	public String getPassword() {
 		return user.getPasswordHash();
@@ -58,7 +58,7 @@ public class MyUserDetails implements UserDetails {
 	public boolean isAccountNonLocked() {
 		return true;
 	}
-
+	
 	@Override
 	public boolean isCredentialsNonExpired() {
 		return true;

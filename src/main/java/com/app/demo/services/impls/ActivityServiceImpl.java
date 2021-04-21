@@ -11,7 +11,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 
@@ -68,7 +67,6 @@ public class ActivityServiceImpl implements IActivityService {
 				entities = getListByNavigatorAndWeek(request, start1, end1);
 				return convertToDTO(entities);
 			case "Month":
-				System.out.println("vào getlist covert month ");
 				LocalDate endDate = date.withDayOfMonth(date.getMonth().length(date.isLeapYear())).plusDays(6);
 				LocalDate startDate = date.withDayOfMonth(1).minusDays(6);
 				Date end2 = null;
@@ -151,9 +149,11 @@ public class ActivityServiceImpl implements IActivityService {
 		User user = userRepo.findByUsername(dto.getUsername());
 		PersonalActivity entity = Mapper.getMapper().map(dto,PersonalActivity.class );
 		entity.setUser(user);
-		entity.setEndTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		entity.setEndTime(sdf
         .parse(dto.getEndTime()));	
-		entity.setStartTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		entity.setStartTime(sdf
 		        .parse(dto.getStartTime()));	
 		repo.save(entity);
 	}catch (Exception e) {
@@ -183,10 +183,12 @@ public class ActivityServiceImpl implements IActivityService {
 		if(result) {
 		PersonalActivity entity = Mapper.getMapper().map(dto,PersonalActivity.class );
 		User user = userRepo.findByUsername(dto.getUsername());
+		SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		entity.setUser(user);
-			entity.setEndTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+			entity.setEndTime(sdf
 			.parse(dto.getEndTime()));
-		entity.setStartTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		entity.setStartTime(sdf
 		        .parse(dto.getStartTime()));	
 		repo.save(entity);
 		}else throw new SQLException("Could not get it by this Id "+id);

@@ -33,11 +33,11 @@ public class TargetSchool extends Auditable<String> {
 	@Column(name="target_school_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
-	@Column
+	@Column(length = 10)
 	private String schoolYear;
 	
-	@Column
+	private boolean isActive;
+	
 	private String note;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -54,4 +54,6 @@ public class TargetSchool extends Auditable<String> {
 	
 	@OneToMany(mappedBy="targetSchool", fetch = FetchType.LAZY)
 	private List<Report> reports;
+	@OneToMany(mappedBy="targetSchool", fetch = FetchType.LAZY)
+	private List<Contract> contracts;
 }

@@ -29,7 +29,7 @@ public class Role extends Auditable<String> {
 	@Id
 	@Column(name = "role_id")
 	private int id;
-
+	@Column(length =15)
 	private String name;
 	@OneToMany(mappedBy  ="role", fetch = FetchType.LAZY)
 	private List<User> users;

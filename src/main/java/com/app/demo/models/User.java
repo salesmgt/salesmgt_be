@@ -32,18 +32,16 @@ import lombok.Setter;
 public class User extends Auditable<String> {
 
 	@Id
+	@Column(length = 30)
 	private String username;
 
-	@Column
 	private String passwordHash;
-
-	@Column
+	@Column(length = 50)
 	private String fullName;
 
-	@Column(name = "user_email")
+	@Column(name = "user_email",length =50)
 	private String email;
-
-	@Column(name = "user_phone")
+	@Column(name = "user_phone",length = 15)
 	private String phone;
 
 	@Column(name = "is_Active")
@@ -51,15 +49,15 @@ public class User extends Auditable<String> {
 
 	@Column(name = "user_avatar")
 	private String avatar;
-
-	@Column(name = "user_gender")
-	private boolean gender;
-
-	@Column
+	
+	private String privateToken;
+	
+	@Column(name = "user_isMale")
+	private boolean isMale;
+	
 	private String address;
 
 	@Temporal(TemporalType.DATE)
-	@Column
 	private Date birthDate;
 
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
@@ -71,4 +69,5 @@ public class User extends Auditable<String> {
 	
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<PersonalActivity> personalActivities;
+	
 }

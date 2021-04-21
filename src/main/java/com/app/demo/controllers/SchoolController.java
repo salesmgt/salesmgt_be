@@ -1,5 +1,8 @@
 package com.app.demo.controllers;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,10 +68,10 @@ public class SchoolController {
 	public Paging<SchoolDTO> getSchoolByFilter(@RequestParam(required = false) String district,
 			@RequestParam(required = false) String status, @RequestParam(required = false) String type,
 			@RequestParam(required = false) String level, @RequestParam(required = false) Scale scale,
-			@RequestParam(required = false) String key, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(required = false) String key,@RequestParam(required = false) String schoolYear, @RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "id") String column,
 			@RequestParam(defaultValue = "ASC") String direction) {
-		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolByFilter(district, status, SchoolType.valueOfLabel(type),Level.valueOfLabel(level), scale, key, page,
+		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolByFilter(district, status, SchoolType.valueOfLabel(type),Level.valueOfLabel(level), scale, key,schoolYear, page,
 				limit, column, direction);
 		return schoolPage;
 	}
@@ -81,22 +84,33 @@ public class SchoolController {
 	 * @return success: ResponseEntity (http status 200 OK + schoolDTO). fail :
 	 *         ResponseEntity (http status CONFLICT + BAD REQUEST).
 	 * @author Nguyen Hoang Gia
+	 * @throws SQLIntegrityConstraintViolationException 
 	 */
 	@PostMapping
-	public String insert(@RequestBody @Valid SchoolDTO school, BindingResult bindingResult) {
-		iSchoolService.insert(school);
+	public String insert(@RequestBody @Valid SchoolDTO school, BindingResult bindingResult){
+			iSchoolService.insert(school);
 		return "Inserting is done";
-	}
+			}
 
 	@PutMapping("/{id}")
-	public String update(@RequestBody @Valid SchoolDTO school, @PathVariable String id, BindingResult bindingResult) {
-		iSchoolService.update(school);
+	public String update(@RequestBody @Valid SchoolDTO school, @PathVariable int id, BindingResult bindingResult) {
+		
+		iSchoolService.update(id,school);
 		return "Updating is done";
 	}
 
 	@DeleteMapping("/{id}")
-	public String delete(@PathVariable int id) {
+	public String delete(@PathVariable @Valid int id, BindingResult bindingResult) {
 		iSchoolService.delete(id);
 		return "Removing is done";		
+	}
+	@GetMapping("/{schoolId}")
+	public SchoolDTO getOne(@PathVariable int schoolId) {
+		return iSchoolService.getOne(schoolId);
+	}
+	@PostMapping("/import")
+	public String importSchool(@RequestBody List<SchoolDTO> dtos) {
+		int result = iSchoolService.saveAll(dtos);
+		return "đã thêm "+result;
 	}
 }

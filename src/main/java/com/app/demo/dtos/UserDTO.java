@@ -4,8 +4,11 @@ package com.app.demo.dtos;
 import java.util.Date;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,12 +19,12 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO extends AuditableDTO {
+public class UserDTO {
 	
 	private String username;
 	
 	private String passwordHash;
-	@NotNull
+	@NotBlank(message = "Full name is mandatory")
 	private String fullName;
 	@Email(message = "Email should be valid")
 	private String email;
@@ -32,11 +35,11 @@ public class UserDTO extends AuditableDTO {
 	
 	private String avatar;
 	@NotNull
-	private boolean gender;
+	@JsonProperty("isMale")
+	private boolean isMale;
 	
 	private String address;
-	
 	private Date birthDate;
-	@NotNull
+	@NotBlank
 	private String roleName;
 }

@@ -34,9 +34,6 @@ public class UserController {
 	
 	@PostMapping
 	public String insert(@RequestBody @Valid UserDTO dto, BindingResult bindingResult) throws SQLIntegrityConstraintViolationException {
-		/*if (!ObjectUtils.isEmpty(service.getOne(dto.getUsername()))) {
-			throw new DataIntegrityViolationException("Dupplicate username");
-		} else {*/
 			service.insert(dto);
 			return "User inserting is done";
 		
@@ -76,7 +73,7 @@ public class UserController {
 	@GetMapping
 	public Paging<UserDTO> getByFilter(@RequestParam(required = false) String key,
 										@RequestParam(defaultValue = "0")int page,
-										@RequestParam(defaultValue = "5") int limit, 
+										@RequestParam(defaultValue = "10") int limit, 
 										@RequestParam(defaultValue = "username")String column,
 										@RequestParam(defaultValue = "ASC")String direction,
 										@RequestParam(required = false) boolean active, 
@@ -93,7 +90,7 @@ public class UserController {
 		return "Updating is successfull";
 	}
 	@PostMapping("/{username}")
-	public String updateProfile(@PathVariable String username, @RequestBody RequestPasswordDTO dto) throws SQLIntegrityConstraintViolationException {
+	public String updateProfile(@PathVariable String username, @RequestBody @Valid RequestPasswordDTO dto,BindingResult bindingResult) throws SQLIntegrityConstraintViolationException {
 		service.updatePassword(username, dto);
 		return "Updating is successfull";
 	}

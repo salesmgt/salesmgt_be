@@ -18,6 +18,7 @@ import com.app.demo.services.ITargetSchoolService;
 public class LocationController {
 	@Autowired
 	private ITargetSchoolService service;
+	
 	@GetMapping
 	public List<LocationCard> getNameAndDistrict(@RequestParam String username, @RequestParam(required = false) String key){
 		return service.getTargetSchoolName(username, key);

@@ -23,7 +23,7 @@ public class District extends Auditable<String> {
 	@Id
 	@Column(name = "district_id")
 	private int id;
-	@Column(name = "district_name")
+	@Column(name = "district_name",length = 50)
 	private String name;
 	@OneToMany(mappedBy  ="district", fetch = FetchType.LAZY)
 	private List<School> schools;

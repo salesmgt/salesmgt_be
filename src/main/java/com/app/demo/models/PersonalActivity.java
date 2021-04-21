@@ -28,8 +28,9 @@ public class PersonalActivity extends Auditable<String> {
 	@Column(name = "personal_activity_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	@Column
+	@Column(length = 50)
 	private String title;
+	@Column(length = 50)
 	private String location;
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date startTime;	

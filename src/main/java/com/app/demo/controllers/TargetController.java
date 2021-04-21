@@ -2,18 +2,28 @@ package com.app.demo.controllers;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.demo.dtos.AddTargetRequest;
+import com.app.demo.dtos.MutiAssignRequest;
 import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RequestAsignObject;
 import com.app.demo.dtos.TargetDTO;
+import com.app.demo.dtos.TargetFilterRequest;
+import com.app.demo.dtos.TargetRequest;
 import com.app.demo.models.Level;
 import com.app.demo.models.Scale;
 import com.app.demo.models.SchoolType;
@@ -46,14 +56,37 @@ public class TargetController {
 				page, limit, column, direction);
 		return targets;	
 	}
-	@PatchMapping
-	public String assign(@RequestBody RequestAsignObject request) {
-		service.assign(request.getTargetId(), request.getUsername());
+	@PatchMapping("/{targetId}")
+	public String assign(@RequestParam int targetId,@RequestBody RequestAsignObject request) {
+		service.assign(targetId, request.getUsername());
 		return "Assigned";
 	}
+	/*@PostMapping()
+	public String insert(@RequestBody TargetRequest request) {
+		service.insert(request);
+		return "Inserted";
+	}*/
 	@GetMapping("/school-years")
 	public List<String> getSchoolYearBySchoolId(@RequestParam int id){
 		return service.getSchoolYearBySchoolId(id);
 	}
-
+	@PostMapping("/mutiple-assign")
+	public String assignMutiple(@RequestBody @Valid MutiAssignRequest request, BindingResult bindingResult) {
+		service.assignMutiple(request);
+		return "Assigned";
+	}
+	@DeleteMapping("/{targetId}")
+	public String delete(@PathVariable int targetId) {
+		service.delete(targetId);
+		return "Deleted";
+	}
+	@GetMapping("/{targetId}")
+	public TargetDTO getOne(@PathVariable int targetId) {
+		return service.getOne(targetId);
+	}
+	@PostMapping
+	public String createByFilter(@RequestBody AddTargetRequest request) {
+		int result = service.insert(request);
+		return "Inserting "+result;
+	}
 }

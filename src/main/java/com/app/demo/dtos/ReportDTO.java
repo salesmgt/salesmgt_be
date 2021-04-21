@@ -22,7 +22,7 @@ public class ReportDTO {
     private String district;
     private String address;
     private String reprName;
-    private boolean reprGender;
+    private boolean reprIsMale;
     private String purpose;
     private String result;
     private String description;
@@ -32,4 +32,22 @@ public class ReportDTO {
     private String commentedPerson;
     private String contextComments;
     private String schoolYear;
+    private int targetId;
+	public ReportDTO(int id, Date date, String result, String description, String positivity, String difficulty,
+			String futurePlan) {
+		super();
+		this.id = id;
+		this.date = date;
+		this.result = result;
+		this.description = description;
+		this.positivity = positivity;
+		this.difficulty = difficulty;
+		this.futurePlan = futurePlan;
+	}
+	@Override
+	public String toString() {
+		return "[" + commentedPerson + "] " + contextComments;
+	}
+    
+    
 }

@@ -20,8 +20,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public UserDetails loadUserByUsername(String username){
-		User user = repo.findByUsername(username);
-			return new MyUserDetails(user);
+		User user = null;
+		try {
+		 user = repo.findByUsername(username);
+		}catch(Exception e) {
+			throw new RuntimeException();
+		}
+		return new MyUserDetails(user);
 	}
 
 }

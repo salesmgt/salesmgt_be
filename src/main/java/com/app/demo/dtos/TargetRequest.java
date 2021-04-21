@@ -1,14 +1,20 @@
 package com.app.demo.dtos;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RequestAsignObject {
+@Setter
+@Getter
+public class TargetRequest {
+	private int id;
+	private String schoolYear;
+	private String note;
 	private String username;
+	private List<Integer> schoolId;
 }

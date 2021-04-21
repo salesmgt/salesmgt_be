@@ -27,10 +27,10 @@ import lombok.Setter;
 public class SchoolStatus extends Auditable<String> {
 
 	@Id
-	@Column(name = "school_status_id")
+	@Column(name = "school_status_id",length = 10)
 	private String id;
 	
-	@Column(name = "school_status_name")
+	@Column(name = "school_status_name",length = 50)
 	private String name;
 	
 	@OneToMany(mappedBy  ="schoolStatus", fetch = FetchType.LAZY)

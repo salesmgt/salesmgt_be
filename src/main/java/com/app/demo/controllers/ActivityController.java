@@ -30,7 +30,7 @@ public class ActivityController {
 	
 	@GetMapping
 	public List<ActivityDTO> getList(@RequestParam(defaultValue= "navigating") String name, @RequestParam(defaultValue = "Week") String currentView,
-			@RequestParam(defaultValue= "haptnn") String username, @RequestParam String currentDate){
+			@RequestParam String username, @RequestParam String currentDate){
 		ActivityViewRequest request = new ActivityViewRequest();
 		request.setUsername(username);
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -41,8 +41,6 @@ public class ActivityController {
 		List<ActivityDTO> dtos = null;
 		try{
 		 dtos = service.getActivities(request);
-		 if(dtos !=null)
-		System.out.println(dtos.size());
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -50,7 +48,6 @@ public class ActivityController {
 	}
 	@PostMapping()
 	public void insert (@RequestBody ActivityDTO dto ) {
-		System.out.println("end time luc nhận ở controller "+dto.getEndTime());
 		service.insert(dto);
 	}
 	@DeleteMapping()
@@ -62,18 +59,14 @@ public class ActivityController {
 	public void update(@PathVariable int id, @RequestBody ActivityDTO dto) {
 		if(dto.getId() ==-1) {
 			String ex = dto.getRecurrenceException(); 
-			System.out.println("update create "+dto.getRecurrenceID());
 			dto.setRecurrenceException(null);
-			System.out.println(dto.getRecurrenceRule());
 			dto.setRecurrenceRule(null);		
 			service.updatePatch(id, ex);
 			service.insert(dto);		
-			System.out.println("THành cong save "+dto.getEndTime());
 			return;
 		}
 		if(dto.getId() == -2) {
 			service.updatePatch(id, dto.getRecurrenceException());
-			System.out.println("remove ");
 			return;
 		}
 		service.update(dto, id);

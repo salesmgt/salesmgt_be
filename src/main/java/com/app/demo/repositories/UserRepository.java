@@ -35,4 +35,4 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 			  nativeQuery = true)
 	User findUserByHashPasswordAndUsername(
 			  @Param("password") String password, @Param("username") String username);
-}
+	}

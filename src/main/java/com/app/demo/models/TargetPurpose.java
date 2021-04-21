@@ -26,10 +26,10 @@ import lombok.Setter;
 @EntityListeners(AuditingEntityListener.class)
 public class TargetPurpose extends Auditable<String> {
 	@Id
-	@Column(name = "target_school_purpose_id")
+	@Column(name = "target_school_purpose_id",length = 10)
 	private String id;
 	
-	@Column(name = "target_school_purpose_name")
+	@Column(name = "target_school_purpose_name",length = 50)
 	private String name;
 	
 	@OneToMany(mappedBy="targetPurpose", fetch = FetchType.LAZY)

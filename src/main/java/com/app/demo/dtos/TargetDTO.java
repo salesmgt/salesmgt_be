@@ -18,7 +18,7 @@ public class TargetDTO {
 	private String fullName;
 	private String avatar;
 	private String reprName;
-	private boolean reprGender;
+	private boolean reprIsMale;
 	private String username;
 	private String district;
 	private String schoolYear;

@@ -24,11 +24,10 @@ import com.app.demo.models.SchoolType;
 
 public class PasswordGenerate {
 	public static void main(String[] args) {
-		String cmt = "[tien]alibaba";
-		String supervisor = cmt.substring(1,cmt.indexOf("]"));
-		System.out.println(supervisor);
+		String cmt = "Duplicate entry '3 Mcguire Terrace' for key 'school.school_address_UNIQUE'";
 		
-		System.out.println(cmt.substring(cmt.indexOf("]")+1, cmt.length()));
+		
+		System.out.println(cmt.split("'")[1]);
 	}
 		         
 	

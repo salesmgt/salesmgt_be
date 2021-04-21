@@ -27,29 +27,24 @@ public class Report extends Auditable<String> {
 	@Column(name = "report_id") 
 	private int id;
 	
-	@Column
 	private Date date;
 	
 	@Column(name = "report_description")
 	private String description;
-	
-	@Column
+	@Column(length = 50)
 	private String result;
 	
-	@Column
-	private String positivity;
+	private boolean isActive;
 	
-	@Column
+	private String positivity;
+
 	private String difficulty;
 	
-	@Column
 	private String futurePlan;
 	
-	@Column
 	private String supervisorComment;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="target_school_id")
-	private TargetSchool targetSchool;
-	
+	private TargetSchool targetSchool;	
 }
