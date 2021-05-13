@@ -41,7 +41,7 @@ public class AuthController {
                         loginRequest.getUsername(),
                         loginRequest.getPassword())
 			);}catch(Exception e) {
-				throw new RuntimeException();
+				throw new RuntimeException("login failed");
 			}
 					;		
 			// Nếu không xảy ra exception tức là thông tin hợp lệ

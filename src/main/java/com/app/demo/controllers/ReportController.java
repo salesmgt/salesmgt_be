@@ -37,10 +37,8 @@ public class ReportController {
 	
 	@PostMapping
 	public String insert(@RequestBody List<ReportDTO> request) throws SQLIntegrityConstraintViolationException {
-		 List<?> result =  service.insert(request);
-		if(result.isEmpty())
-			throw new SQLIntegrityConstraintViolationException("Lỗi không xác định");
-		return "Inserted";
+		 String result =  service.insert(request);
+		return result;
 	}
 	@DeleteMapping("/{reportId}")
 	public String remove(@PathVariable int reportId) throws SQLIntegrityConstraintViolationException {
@@ -58,7 +56,9 @@ public class ReportController {
 	}
 	
 	@GetMapping
-	public Paging<ReportDTO> getListByFilter(@RequestParam(required = false) String key,
+	public Paging<ReportDTO> getListByFilter(
+			@RequestParam(required = false,defaultValue = "0") int targetId,
+			@RequestParam(required = false) String key,
 			@RequestParam(required = false) String district,
 			@RequestParam(required = false) String purpose,
 			@RequestParam(required = false) String fullName,
@@ -76,7 +76,7 @@ public class ReportController {
 			convertedFromDate = sdf.parse(fromDate);
 			convertedToDate = sdf.parse(toDate);
 		}
-		return service.getReportByFilter(key, district, purpose, fullName, schoolYear, convertedFromDate, convertedToDate, page, limit, column, direction);	
+		return service.getReportByFilter(targetId,key, district, purpose, fullName, schoolYear, convertedFromDate, convertedToDate, page, limit, column, direction);	
 	}
 	@GetMapping("/{reportId}")
 	public ReportDTO getOne(@PathVariable int reportId) {

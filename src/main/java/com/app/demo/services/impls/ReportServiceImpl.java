@@ -1,8 +1,10 @@
 package com.app.demo.services.impls;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
@@ -55,7 +57,7 @@ public class ReportServiceImpl implements IReportService{
 		return paging;
 	}
 	@Override
-	public Paging<ReportDTO> getReportByFilter(String key,String district, String purpose, String fullName, String schoolYear,
+	public Paging<ReportDTO> getReportByFilter(int targetId,String key,String district, String purpose, String fullName, String schoolYear,
 			Date fromDate, Date toDate, int page, int limit, String column, String direction) {
 		Page<Report> entities =  (Page<Report>) repo.findAll((Specification<Report>)(root,query,builder) -> {
 			Join<Report, TargetSchool> report_target = root.join(Report_.TARGET_SCHOOL);
@@ -68,11 +70,13 @@ public class ReportServiceImpl implements IReportService{
 				Predicate schoolName = builder.like(target_school.get(School_.NAME), "%" + key + "%");	
 				Predicate fullname = builder.like(target_user.get(User_.FULL_NAME), "%" + key + "%");
 				Predicate username = builder.like(target_user.get(User_.USERNAME), "%" + key + "%");
-				Predicate result = builder.like(root.get(Report_.RESULT), "%" + key + "%");
 				Predicate cmt = builder.like(root.get(Report_.SUPERVISOR_COMMENT), "%" + key + "%");
 				Predicate description = builder.like(root.get(Report_.DESCRIPTION), "%" + key + "%");
 				Predicate name = builder.like(target_user.get(User_.FULL_NAME), "%" + key + "%");
-				p = builder.or(schoolName,fullname,username,result,cmt,description,name);
+				p = builder.or(schoolName,fullname,username,cmt,description,name);
+			}
+			if (targetId != 0) {
+				p = builder.and(p,builder.equal(report_target.get(TargetSchool_.ID), targetId));
 			}
 			if (!ObjectUtils.isEmpty(district)) {
 				p = builder.and(p,builder.equal(school_district.get(District_.NAME), district));
@@ -89,7 +93,7 @@ public class ReportServiceImpl implements IReportService{
 			if (!ObjectUtils.isEmpty(fromDate) && !ObjectUtils.isEmpty(toDate)) {
 				p = builder.and(p,builder.between(root.get(Report_.DATE),fromDate,toDate));
 			}
-			 p = builder.and(p,builder.isTrue(root.get(Report_.IS_ACTIVE)));
+			
 			return p;
 		},paging(page, limit, column, direction));
 		Paging<ReportDTO> reportPage = new Paging<ReportDTO>();
@@ -113,7 +117,7 @@ public class ReportServiceImpl implements IReportService{
 				dto.setDistrict(item.getTargetSchool().getSchool().getDistrict().getName());
 				dto.setReprName(item.getTargetSchool().getSchool().getReprName());
 				dto.setReprIsMale(item.getTargetSchool().getSchool().isReprIsMale());
-				dto.setLevel(item.getTargetSchool().getSchool().getEducationalLevel().getValues());
+				dto.setLevel(item.getTargetSchool().getSchool().getEducationalLevel().getName());
 				dto.setSchoolName(item.getTargetSchool().getSchool().getName());
 				dto.setSchoolYear(item.getTargetSchool().getSchoolYear());
 				dto.setTargetId(item.getTargetSchool().getId());
@@ -138,50 +142,63 @@ public class ReportServiceImpl implements IReportService{
 		entity.setDescription(dto.getDescription());
 		entity.setDate(dto.getDate());
 		entity.setPositivity(dto.getPositivity());
-		entity.setResult(dto.getResult());
+		entity.setSuccess(dto.isSuccess());
 		return repo.save(entity);		
 	}
 	@Override
 	public Report delete(int id) {
-		Report entity = repo.getOne(id);
-		entity.setActive(false);
-		return repo.save(entity);
+		Report report = repo.getOne(id);
+		repo.delete(report);
+		return report;
 	}
 	@Transactional
 	@Override
-	public List<Report> insert(List<ReportDTO> request) {
+	public String insert(List<ReportDTO> request) {
 		List<Report> list = new ArrayList<>();
-		
-		request.forEach( dto -> {
-			Report entity = new Report();
-			if(!ObjectUtils.isEmpty(dto.getCommentedPerson())){
-			entity.setSupervisorComment(dto.toString());
+		SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		List<Report> dupplicate = null;
+		try {
+			
+		for (ReportDTO dto : request) {
+			dupplicate = repo.findReportByDateAndTarget(dto.getDate().substring(0,10), dto.getTargetId());
+			System.out.println(dupplicate);
+			if(!ObjectUtils.isEmpty(dupplicate)){
+				return "This school ["+dupplicate.get(0).getTargetSchool().getSchool().getName()+"] have already submitted report";
 			}
+			Report entity = new Report();
 			TargetSchool target = targetRepo.getOne(dto.getTargetId());
 			entity.setDifficulty(dto.getDifficulty());
 			entity.setFuturePlan(dto.getFuturePlan());
 			entity.setDescription(dto.getDescription());
-			entity.setDate(dto.getDate());
+			entity.setDate(sdf
+			        .parse(dto.getDate()));
 			entity.setPositivity(dto.getPositivity());
-			entity.setResult(dto.getResult());
+			entity.setSuccess(dto.isSuccess());
 			entity.setTargetSchool(target);
-			entity.setActive(true);
+			if(!ObjectUtils.isEmpty(dto.getCommentedPerson())){
+				entity.setSupervisorComment(dto.toString());
+				}
 			list.add(entity);
-		});
-		return repo.saveAll(list);
+		};
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return "Created "+repo.saveAll(list).size()+" records";
 	}
 	@Override
 	public ReportDTO getOne(int id) {
 		Report item = repo.getOne(id);
 		ReportDTO dto = Mapper.getMapper().map(item, ReportDTO.class);
 		dto.setId(item.getId());
+		dto.setPurpose(item.getTargetSchool().getTargetPurpose().getName());
 		dto.setUsername(item.getTargetSchool().getUser().getUsername());
 		dto.setAddress(item.getTargetSchool().getSchool().getAddress());
 		dto.setAvatar(item.getTargetSchool().getUser().getAvatar());
 		dto.setDistrict(item.getTargetSchool().getSchool().getDistrict().getName());
 		dto.setReprName(item.getTargetSchool().getSchool().getReprName());
 		dto.setReprIsMale(item.getTargetSchool().getSchool().isReprIsMale());
-		dto.setLevel(item.getTargetSchool().getSchool().getEducationalLevel().getValues());
+		dto.setLevel(item.getTargetSchool().getSchool().getEducationalLevel().getName());
 		dto.setSchoolName(item.getTargetSchool().getSchool().getName());
 		dto.setSchoolYear(item.getTargetSchool().getSchoolYear());
 		dto.setFullName(item.getTargetSchool().getUser().getFullName());

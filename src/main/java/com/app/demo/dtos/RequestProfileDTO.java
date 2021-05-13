@@ -10,4 +10,6 @@ import lombok.Setter;
 public class RequestProfileDTO {
 	private String attribute;
 	private String value;
+	private double longitude;
+	private double latitude;
 }

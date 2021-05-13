@@ -22,34 +22,33 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 @RestControllerAdvice
 public class ExceptionHandlerController {
 	/*@ExceptionHandler(Exception.class)
-	 @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+	 @ResponseStatus(value = HttpStatus.FORBIDDEN)
 	    public ErrorMessage handleAllException(Exception ex, WebRequest request) {
-	        return new ErrorMessage(500, ex.getMessage());
-	    }*/
-	
-	
-	/* @ExceptionHandler(RuntimeException.class)
+	        return new ErrorMessage(403, ex.getMessage());
+	    }
+	 @ExceptionHandler(RuntimeException.class)
 	    @ResponseStatus(value = HttpStatus.FORBIDDEN)
-	    public ErrorMessage runTime(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(403, "Đối tượng không tồn tại");
-	    }*/
-	/* @ExceptionHandler(IndexOutOfBoundsException.class)
+	    public ErrorMessage runTime(RuntimeException ex) {
+		
+	        return new ErrorMessage(403, ex.getMessage());
+	    }
+	 @ExceptionHandler(java.lang.ArrayIndexOutOfBoundsException.class)
 	    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	    public ErrorMessage indexOutOfBoundException(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(400, "Đối tượng không tồn tại");
-	    }
+	        return new ErrorMessage(400, "Đối tượng đã tồn tại");
+	    }/*
 	 @ExceptionHandler(NullPointerException.class)   
 	 @ResponseStatus(value = HttpStatus.NOT_FOUND)
 	    public ErrorMessage catchNullPointerException(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(400, "Đối tượng không tồn tại");
+	        return new ErrorMessage(404, "Đối tượng không tồn tại");
 	    }
 	   
 	 @ExceptionHandler(SQLIntegrityConstraintViolationException.class)   
 	 @ResponseStatus(value = HttpStatus.CONFLICT)
 	    public ErrorMessage catchSQLException(SQLIntegrityConstraintViolationException ex) {
-		System.out.println("Đối tượng đã tồn tại "+ex.getMessage());
+		 String cmt = ex.getMessage();
 		 return 
-	        	 new ErrorMessage(409, "Error at "+ex.getMessage());
+	        	 new ErrorMessage(409, "Error at "+cmt/*.split("'")[1);
 	    }
 	 
 	 @ExceptionHandler(IllegalStateException.class)   
@@ -63,7 +62,7 @@ public class ExceptionHandlerController {
 	 @ExceptionHandler(HttpMessageNotReadableException.class)   
 	 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	    public ErrorMessage catchRequest(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(400, "Giá trị thuộc tính sai định dạng");
+	        return new ErrorMessage(409, "Giá trị thuộc tính sai định dạng");
 	    }
 	
 	  @ExceptionHandler(MethodArgumentNotValidException.class)   

@@ -16,32 +16,32 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-public class Report extends Auditable<String> {
+@Entity
+public class Service extends Auditable<String> {
 	@Id
+	@Column(name = "service_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "report_id") 
 	private int id;
-	
-	private Date date;
-	
-	@Column(name = "report_description")
-	private String description;
-	private boolean isSuccess;
-	
-	private String positivity;
+	private Date startDate;
+	private Date approveDate;
+	private String status; // approved-pending-rejected
+	private String rejectedReason;
+	private Date endDate; //deadline
+	private boolean isExpired;
+	private int classNumber;
+	private String note;
 
-	private String difficulty;
-	
-	private String futurePlan;
-	
-	private String supervisorComment;
-	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="target_school_id")
 	private TargetSchool targetSchool;	
+	
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="service_type_id")
+	private ServiceType serviceType;	
+	
 }

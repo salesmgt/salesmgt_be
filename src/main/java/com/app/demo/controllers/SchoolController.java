@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,9 +21,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.demo.dtos.Paging;
+import com.app.demo.dtos.Principle;
 import com.app.demo.dtos.SchoolDTO;
-import com.app.demo.models.Level;
-import com.app.demo.models.Scale;
+import com.app.demo.dtos.SchoolStatusRequest;
+import com.app.demo.dtos.SchoolTimelineItem;
 import com.app.demo.models.SchoolType;
 import com.app.demo.services.ISchoolService;
 
@@ -65,14 +67,29 @@ public class SchoolController {
 	 * @since 3/7/2021
 	 */
 	@GetMapping
-	public Paging<SchoolDTO> getSchoolByFilter(@RequestParam(required = false) String district,
-			@RequestParam(required = false) String status, @RequestParam(required = false) String type,
-			@RequestParam(required = false) String level, @RequestParam(required = false) Scale scale,
+	public Paging<SchoolDTO> getSchoolByFilter(
+			@RequestParam(required = false) String district,
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) Boolean active, @RequestParam(required = false) String type,
+			@RequestParam(required = false) String level,
 			@RequestParam(required = false) String key,@RequestParam(required = false) String schoolYear, @RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "id") String column,
+			@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "schoolId") String column,
 			@RequestParam(defaultValue = "ASC") String direction) {
-		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolByFilter(district, status, SchoolType.valueOfLabel(type),Level.valueOfLabel(level), scale, key,schoolYear, page,
+		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolByFilter(active,district, status, SchoolType.valueOfLabel(type),level, key,schoolYear, page,
 				limit, column, direction);
+		return schoolPage;
+	}
+	
+	@GetMapping("/targets-creating")
+	public Paging<SchoolDTO> getSchoolForTarget(
+			@RequestParam(required = false) String district,
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) Boolean active, @RequestParam(required = false) String type,
+			@RequestParam(required = false) String level,
+			@RequestParam(required = false) String key,@RequestParam(required = false) String schoolYear, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "schoolId") String column,
+			@RequestParam(defaultValue = "ASC") String direction) {
+		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolForTarget(district, status, type, level,schoolYear, page, limit, column, direction);
 		return schoolPage;
 	}
 
@@ -87,30 +104,57 @@ public class SchoolController {
 	 * @throws SQLIntegrityConstraintViolationException 
 	 */
 	@PostMapping
-	public String insert(@RequestBody @Valid SchoolDTO school, BindingResult bindingResult){
-			iSchoolService.insert(school);
+	public String insert(@RequestBody @Valid SchoolDTO school, BindingResult bindingResult) throws SQLIntegrityConstraintViolationException{
+			
+				boolean result = iSchoolService.insert(school);
+				if(!result)
+					throw new SQLIntegrityConstraintViolationException("duplicate key");
+			
 		return "Inserting is done";
 			}
 
 	@PutMapping("/{id}")
-	public String update(@RequestBody @Valid SchoolDTO school, @PathVariable int id, BindingResult bindingResult) {
+	public String update(@RequestBody @Valid SchoolDTO school, @PathVariable String id, BindingResult bindingResult) {
 		
 		iSchoolService.update(id,school);
 		return "Updating is done";
 	}
 
 	@DeleteMapping("/{id}")
-	public String delete(@PathVariable @Valid int id, BindingResult bindingResult) {
+	public String delete(@PathVariable @Valid String id, BindingResult bindingResult) {
 		iSchoolService.delete(id);
 		return "Removing is done";		
 	}
 	@GetMapping("/{schoolId}")
-	public SchoolDTO getOne(@PathVariable int schoolId) {
+	public SchoolDTO getOne(@PathVariable String schoolId) {
 		return iSchoolService.getOne(schoolId);
 	}
 	@PostMapping("/import")
-	public String importSchool(@RequestBody List<SchoolDTO> dtos) {
-		int result = iSchoolService.saveAll(dtos);
+	public String importSchool(@RequestBody List<SchoolDTO> dtos) throws SQLIntegrityConstraintViolationException {
+		int result = 0;
+		try {
+		 result = iSchoolService.saveAll(dtos);
+		}catch(Exception e) {
+			 if(e.getCause() != null && e.getCause().getCause() instanceof SQLIntegrityConstraintViolationException) {
+				 SQLIntegrityConstraintViolationException ex = (SQLIntegrityConstraintViolationException)e.getCause().getCause();
+				 throw new SQLIntegrityConstraintViolationException(ex.getMessage());
+			 }	
+		}
 		return "đã thêm "+result;
+	}
+	@PatchMapping("/{schoolId}")
+	public String updateStatus(@RequestBody SchoolStatusRequest request, @PathVariable String schoolId) {
+		iSchoolService.updateStatus(schoolId, request);
+		return "Updated";
+	}
+	@PatchMapping("/principal/{schoolId}")
+	public String updatePrinciple(@PathVariable String schoolId, @RequestBody Principle request) {
+		iSchoolService.updatePrinciple(schoolId, request);
+		return "Updated";
+	}
+	
+	@GetMapping("/timeline/{schoolId}")
+	public List<SchoolTimelineItem> getTimeline(@PathVariable String schoolId) {
+		return iSchoolService.getTimeline(schoolId);
 	}
 }

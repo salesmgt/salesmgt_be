@@ -1,6 +1,6 @@
 package com.app.demo.dtos;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ReportDTO {
 	private int id;
-    private Date date;
+    private String date;
     private String fullName;
     private String username;
     private String avatar;
@@ -24,7 +24,8 @@ public class ReportDTO {
     private String reprName;
     private boolean reprIsMale;
     private String purpose;
-    private String result;
+    @JsonProperty("isSuccess")
+    private boolean isSuccess;
     private String description;
     private String positivity;
     private String difficulty;
@@ -33,17 +34,7 @@ public class ReportDTO {
     private String contextComments;
     private String schoolYear;
     private int targetId;
-	public ReportDTO(int id, Date date, String result, String description, String positivity, String difficulty,
-			String futurePlan) {
-		super();
-		this.id = id;
-		this.date = date;
-		this.result = result;
-		this.description = description;
-		this.positivity = positivity;
-		this.difficulty = difficulty;
-		this.futurePlan = futurePlan;
-	}
+	
 	@Override
 	public String toString() {
 		return "[" + commentedPerson + "] " + contextComments;

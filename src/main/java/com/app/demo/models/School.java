@@ -7,8 +7,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -30,12 +28,8 @@ import lombok.Setter;
 @Table(name = "school")
 @EntityListeners(AuditingEntityListener.class)
 public class School extends Auditable<String> {
-
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "school_id")
-	private int id;
-	
+	private String schoolId;
 	@Column(name = "school_name",length = 50)
 	private String name;
 
@@ -45,19 +39,9 @@ public class School extends Auditable<String> {
 	@Column(name = "school_phone",length = 15)
 	private String phone;
 	
-	@Enumerated(EnumType.ORDINAL)
-	private Level educationalLevel;
-	
-	@Enumerated(EnumType.ORDINAL)
-	@Column(name = "school_scale")
-	private Scale scale;
-	
 	@Column(name = "school_type")
 	@Enumerated(EnumType.ORDINAL)
 	private SchoolType type;
-
-	@Column(name = "school_description")
-	private String description;
 
 	private boolean isActive;
 
@@ -72,6 +56,9 @@ public class School extends Auditable<String> {
 
 	@Column(name = "representative_is_male")
 	private boolean reprIsMale;
+	
+	private double longitude;
+	private double latitude;
 
 	@OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
 	private List<TargetSchool> targetSchools;
@@ -79,9 +66,14 @@ public class School extends Auditable<String> {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "school_status_id")
 	private SchoolStatus schoolStatus;
-
+	
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "district_id")
 	private District district;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "educational_level_id")
+	private EducationalLevel educationalLevel;
 
 }

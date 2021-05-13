@@ -10,9 +10,9 @@ import com.app.demo.dtos.ReportDetails;
 import com.app.demo.models.Report;
 
 public interface IReportService {
-	Paging<ReportDTO> getReportByFilter(String key,String district, String purpose, String fullName, String schoolYear,
+	Paging<ReportDTO> getReportByFilter(int targetId,String key,String district, String purpose, String fullName, String schoolYear,
 			Date fromDate, Date toDate, int page, int limit, String column, String direction);
-	List<?> insert(List<ReportDTO> request);
+	String insert(List<ReportDTO> request);
 	Report update(int id, ReportDetails dto);
 	Report delete(int id);
 	ReportDTO getOne(int id);

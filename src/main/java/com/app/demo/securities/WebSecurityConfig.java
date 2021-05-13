@@ -45,7 +45,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
          .authorizeRequests()
         /* .antMatchers("/**").permitAll()*/
          .antMatchers("/access-tokens")
-         .permitAll().antMatchers("/swagger-ui.html").permitAll()
+         .permitAll().antMatchers("/swagger-ui.html").permitAll().antMatchers("/recover-password/**").permitAll().antMatchers("/recover-password").permitAll()
          .anyRequest()
          .authenticated()
          .and()

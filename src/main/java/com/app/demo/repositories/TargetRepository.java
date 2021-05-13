@@ -24,4 +24,16 @@ public interface TargetRepository extends JpaRepository<TargetSchool, Integer>,J
 	
 	@Query(value= "select u.school_year from target_school u where u.school_id= ?1 order by u.school_year desc", nativeQuery = true)
 	List<String> getSchoolYearsBySchoolId(int id);
+	
+	@Query(value= "SELECT COUNT(*) FROM target_school u INNER JOIN target_school_purpose p on u.target_school_purpose_id = p.target_school_purpose_id"
+			+ "	 WHERE u.school_year = ?1 and p.target_school_purpose_name=?2", nativeQuery = true)
+	long countBySchoolYearAndPurpose(String year,String purpose);
+	
+	@Query(value= "select t.school_id from target_school t where t.school_year=?1", nativeQuery = true)
+	List<Integer> findSchoolIdByYear(String year);
+	
+	List<TargetSchool> findBySchoolYear(String schoolYear);
+	
+	@Query(value= "select * from target_school t where t.school_id=?1", nativeQuery = true)
+	List<TargetSchool> findBySchoolId(String schoolId);
 }

@@ -22,9 +22,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username){
 		User user = null;
 		try {
-		 user = repo.findByUsername(username);
-		}catch(Exception e) {
-			throw new RuntimeException();
+		 user = repo.findByUsernameAndActive(username,true);
+		}catch(NullPointerException e) {
+			throw new NullPointerException();
 		}
 		return new MyUserDetails(user);
 	}

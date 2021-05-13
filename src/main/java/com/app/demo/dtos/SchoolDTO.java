@@ -2,7 +2,6 @@ package com.app.demo.dtos;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
@@ -15,7 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SchoolDTO {
-	private int id;
+	private String schoolId;
 	@NotBlank(message = "Name is mandatory")
 	private String name;
 
@@ -25,13 +24,9 @@ public class SchoolDTO {
 	private String phone;
 	@NotBlank(message = "Level is mandatory")
 	private String educationalLevel;
-	@NotBlank(message = "Scale is mandatory")
-	private String scale;
 	@NotBlank(message = "SchoolType is mandatory")
 	private String type;
-	private String description;
 	private boolean isActive;
-	@NotNull
 	private String status;
 	private String reprName;
 	@Size(min=10, max=11)
@@ -41,5 +36,7 @@ public class SchoolDTO {
 	private boolean reprIsMale;
 	@NotBlank(message = "District is mandatory")
 	private String district;
+	private double latitude;
+	private double longitude;
 	
 }

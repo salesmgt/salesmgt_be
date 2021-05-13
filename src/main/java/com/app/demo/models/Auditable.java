@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @EntityListeners(AuditingEntityListener.class)
 public abstract class Auditable<T> {
-	@Column(length = 50)
+	@Column(length = 50,nullable = true)
 	@CreatedBy
 	private String createdBy;
 	
@@ -31,7 +31,7 @@ public abstract class Auditable<T> {
 	private Date createdDate;
 	
 	@LastModifiedBy
-	@Column(length = 50)
+	@Column(length = 50,nullable = true)
 	private String modifiedBy;
 	
 	@LastModifiedDate

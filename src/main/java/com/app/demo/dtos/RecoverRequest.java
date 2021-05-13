@@ -1,22 +1,16 @@
 package com.app.demo.dtos;
 
-import java.util.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationDTO {
-	private int id;
-	private String title;
-	private boolean isRead;
-	private String type;
-	private String content;
-	private Date createdDate;
+public class RecoverRequest {
 	private String username;
+	private String password;
+	private String privateToken;
 }

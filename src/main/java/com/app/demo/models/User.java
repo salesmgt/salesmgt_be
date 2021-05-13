@@ -55,6 +55,9 @@ public class User extends Auditable<String> {
 	@Column(name = "user_isMale")
 	private boolean isMale;
 	
+	private double longitude;
+	private double latitude;
+
 	private String address;
 
 	@Temporal(TemporalType.DATE)

@@ -1,5 +1,6 @@
 package com.app.demo.models;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -36,8 +37,11 @@ public class TargetSchool extends Auditable<String> {
 	@Column(length = 10)
 	private String schoolYear;
 	
-	private boolean isActive;
+	private String status;
 	
+	private boolean isActive;
+	private Date assignDate;
+	private Date endDate;
 	private String note;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -55,5 +59,5 @@ public class TargetSchool extends Auditable<String> {
 	@OneToMany(mappedBy="targetSchool", fetch = FetchType.LAZY)
 	private List<Report> reports;
 	@OneToMany(mappedBy="targetSchool", fetch = FetchType.LAZY)
-	private List<Contract> contracts;
+	private List<com.app.demo.models.Service> services;
 }

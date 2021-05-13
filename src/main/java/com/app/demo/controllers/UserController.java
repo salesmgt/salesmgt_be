@@ -76,7 +76,7 @@ public class UserController {
 										@RequestParam(defaultValue = "10") int limit, 
 										@RequestParam(defaultValue = "username")String column,
 										@RequestParam(defaultValue = "ASC")String direction,
-										@RequestParam(required = false) boolean active, 
+										@RequestParam(required = false) Boolean active, 
 										@RequestParam(required = false) String fullName, 
 										@RequestParam(required = false) String role) {
 		Paging<UserDTO> userPage = service.getUserByFilter(key, page,
@@ -86,7 +86,7 @@ public class UserController {
 
 	@PatchMapping("/{username}")
 	public String updateProfile(@PathVariable String username, @RequestBody RequestProfileDTO dto) {
-		service.updateProfile(username, dto.getAttribute(), dto.getValue());
+		service.updateProfile(username, dto.getAttribute(), dto.getLongitude(),dto.getLatitude(),dto.getValue());
 		return "Updating is successfull";
 	}
 	@PostMapping("/{username}")

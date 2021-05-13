@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import com.app.demo.dtos.Paging;
+import com.app.demo.dtos.RecoverRequest;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.UserDTO;
 import com.app.demo.emails.EmailSenderService;
@@ -59,7 +60,7 @@ public class UserServiceImpl implements IUserService {
 		  }
 		  entity.setFullName(dto.getFullName());
 		  entity.setAddress(dto.getAddress());
-		  entity.setActive(dto.isActive());
+		  entity.setActive(dto.getActive());
 		  entity.setMale(dto.isMale());
 		  entity.setPhone(dto.getPhone());
 		  entity.setBirthDate(dto.getBirthDate());
@@ -108,7 +109,7 @@ public class UserServiceImpl implements IUserService {
 
 	@Override
 	public Paging<UserDTO> getUserByFilter(String key, int page, int limit, String column, String direction,
-			boolean isActive, String role, String fullName) {
+			Boolean isActive, String role, String fullName) {
 
 		Page<User> entities = (Page<User>) repo.findAll((Specification<User>) (root, query, builder) -> {
 			Join<User, Role> user_role = root.join(User_.ROLE);
@@ -147,6 +148,7 @@ public class UserServiceImpl implements IUserService {
 				UserDTO dto = Mapper.getMapper().map(item, UserDTO.class);
 				dto.setRoleName(item.getRole().getName());
 				dto.setPasswordHash(null);
+				dto.setActive(item.isActive());
 				results.add(dto);
 			});
 			userPage.setList(results);
@@ -157,11 +159,11 @@ public class UserServiceImpl implements IUserService {
 	}
 
 	@Override
-	public void updateProfile(String username, String attribute, String value) {
+	public void updateProfile(String username, String attribute, double longitude, double latitude, String value) {
 		User entity = repo.findByUsername(username);
 		if(!ObjectUtils.isEmpty(entity)) {
 			switch (attribute) {
-			case "address":repo.updateAddress(username, value);
+			case "address":repo.updateAddress(username, value,longitude,latitude);
 			break;
 			case "phone":repo.updatePhone(username, value);
 			break;
@@ -200,6 +202,52 @@ public class UserServiceImpl implements IUserService {
 		}else
 			throw new SQLIntegrityConstraintViolationException("cant not found this user");
 	}
+	@Override
+	public boolean validateToken(RecoverRequest user) {
+		BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+		User entity = repo .findByUsernameAndActive(user.getUsername(), true);
+		if(bcrypt.matches(user.getPrivateToken(), entity.getPrivateToken())){
+			return true;
+		}
+		return false;
+	}
 	
-
+	@Override
+	public void updatePasswordRecover(RecoverRequest request) {
+		BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+		User user = repo.findByUsername(request.getUsername());
+		String newPassword = bcrypt.encode(request.getPassword());
+		user.setPasswordHash(newPassword);
+		user.setPrivateToken(null);
+		repo.save(user);
+	}
+	public void clearToken(String username) {
+		Thread countDownThread = new Thread() {
+	        @Override
+	        public void run() {
+	                try {
+	                    Thread.sleep(900000);//15 mins
+	                } catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+	                User user = repo.getOne(username);
+	                user.setPrivateToken(null);
+	                repo.save(user);
+	        }
+	    };
+	    countDownThread.start();
+	}
+	
+	public void generateToken(String username) throws Exception {
+		User user = repo.getOne(username);
+		BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+		String generate = generatePassword();
+		String encode = bcrypt.encode(generate);
+		user.setPrivateToken(encode);
+		System.out.println(user);
+		email.sendToken(user.getEmail(),user.getFullName(),generate);
+		repo.save(user);
+		
+		clearToken(username);
+	}
 }

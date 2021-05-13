@@ -7,6 +7,5 @@ import org.springframework.stereotype.Repository;
 import com.app.demo.models.School;
 
 @Repository
-public interface SchoolRepository extends JpaRepository<School, Integer>, JpaSpecificationExecutor<School> {
-	boolean existsByPhone(String phone);
+public interface SchoolRepository extends JpaRepository<School, String>, JpaSpecificationExecutor<School> {
 	}

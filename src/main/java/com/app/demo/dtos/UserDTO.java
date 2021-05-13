@@ -22,7 +22,7 @@ import lombok.Setter;
 public class UserDTO {
 	
 	private String username;
-	
+	private String privateToken;
 	private String passwordHash;
 	@NotBlank(message = "Full name is mandatory")
 	private String fullName;
@@ -31,7 +31,7 @@ public class UserDTO {
 	@Size(min=10, max=11)
 	private String phone;
 	
-	private boolean isActive;
+	private Boolean active;
 	
 	private String avatar;
 	@NotNull
@@ -42,4 +42,6 @@ public class UserDTO {
 	private Date birthDate;
 	@NotBlank
 	private String roleName;
+	private double longitude;
+	private double latitude;
 }

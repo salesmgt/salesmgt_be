@@ -12,8 +12,9 @@ import com.app.demo.models.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String>, JpaSpecificationExecutor<User>{
+	User findByUsernameAndActive(String username,boolean active);
 	User findByUsername(String username);
-	
+	User findByUsernameAndActiveAndPrivateToken(String username,boolean active, String privateToken);
 	@Transactional
 	@Modifying
 	@Query(value= "update user u set u.user_email = :value where u.username = :username", nativeQuery = true)
@@ -24,8 +25,8 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 	void updatePhone(String username,  String value);
 	@Transactional
 	@Modifying
-	@Query(value= "update user u set u.address = :value where u.username = :username", nativeQuery = true)
-	void updateAddress(String username,  String value);
+	@Query(value= "update user u set u.address = :value, u.longitude = :longitude, u.latitude =:latitude where u.username = :username", nativeQuery = true)
+	void updateAddress(String username,  String value,double longitude,double latitude);
 	@Transactional
 	@Modifying
 	@Query(value= "update user u set u.user_avatar = :value where u.username = :username", nativeQuery = true)

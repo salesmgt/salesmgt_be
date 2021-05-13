@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum SchoolType {
-	CONG_LAP("Công lập"),NGOAI_CONG_LAP("Ngoài công lập"),BAN_CONG("Bán công");
+	CONG_LAP("Công lập"),NGOAI_CONG_LAP("Ngoài công lập");
 	 public final  String label;
 	 public String getValues() {
 		  return label;
