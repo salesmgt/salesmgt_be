@@ -36,8 +36,8 @@ public class Service extends Auditable<String> {
 	private String note;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="target_school_id")
-	private TargetSchool targetSchool;	
+	@JoinColumn(name="task_id")
+	private Task task;	
 	
 
 	@ManyToOne(fetch = FetchType.LAZY)

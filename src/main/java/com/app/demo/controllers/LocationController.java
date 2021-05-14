@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.demo.dtos.LocationCard;
-import com.app.demo.services.ITargetSchoolService;
+import com.app.demo.services.ITaskSchoolService;
 
 @CrossOrigin
 @RestController
 @RequestMapping(path = "/locations")
 public class LocationController {
 	@Autowired
-	private ITargetSchoolService service;
+	private ITaskSchoolService service;
 	
 	@GetMapping
 	public List<LocationCard> getNameAndDistrict(@RequestParam String username, @RequestParam(required = false) String key){

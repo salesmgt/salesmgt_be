@@ -33,6 +33,8 @@ import com.app.demo.dtos.TotalSchoolDTO;
 import com.app.demo.mappers.Mapper;
 import com.app.demo.models.District;
 import com.app.demo.models.District_;
+import com.app.demo.models.EducationalLevel;
+import com.app.demo.models.EducationalLevel_;
 import com.app.demo.models.Report;
 import com.app.demo.models.School;
 import com.app.demo.models.SchoolStatus;
@@ -40,21 +42,21 @@ import com.app.demo.models.SchoolStatus_;
 import com.app.demo.models.SchoolType;
 import com.app.demo.models.User;
 import com.app.demo.models.User_;
-import com.app.demo.models.TargetPurpose;
-import com.app.demo.models.TargetPurpose_;
+import com.app.demo.models.Purpose;
+import com.app.demo.models.Purpose_;
 import com.app.demo.models.School_;
-import com.app.demo.models.TargetSchool;
-import com.app.demo.models.TargetSchool_;
+import com.app.demo.models.Task;
+import com.app.demo.models.Task_;
 import com.app.demo.repositories.SchoolRepository;
 import com.app.demo.repositories.TargetPurposeRepository;
-import com.app.demo.repositories.TargetRepository;
+import com.app.demo.repositories.TaskRepository;
 import com.app.demo.repositories.UserRepository;
-import com.app.demo.services.ITargetSchoolService;
+import com.app.demo.services.ITaskSchoolService;
 
 @Service
-public class TargetServiceImpl implements ITargetSchoolService {
+public class TargetServiceImpl implements ITaskSchoolService {
 	@Autowired
-	private TargetRepository repo;
+	private TaskRepository repo;
 	
 	@Autowired
 	private SchoolRepository schoolRepo;
@@ -90,22 +92,23 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	
 	@Override
 	public Paging<TargetDTO> getTargetByFilter(Boolean assign,String status,String username, String key,String purpose,SchoolType type,String educationalLevel,String fullName, String district, String schoolYear, int page, int limit, String column, String direction) {
-		Page<TargetSchool> entities = (Page<TargetSchool>) repo.findAll((Specification<TargetSchool>) (root, query, builder) -> {
-			Join<TargetSchool, User> target_user = root.join(TargetSchool_.USER,JoinType.LEFT);
-			Join<TargetSchool, School> target_school = root.join(TargetSchool_.SCHOOL);			
-			Join<TargetSchool, TargetPurpose> target_purpose = root.join(TargetSchool_.TARGET_PURPOSE);
+		Page<Task> entities = (Page<Task>) repo.findAll((Specification<Task>) (root, query, builder) -> {
+			Join<Task, User> target_user = root.join(Task_.USER,JoinType.LEFT);
+			Join<Task, School> target_school = root.join(Task_.SCHOOL);			
+			Join<Task, Purpose> target_purpose = root.join(Task_.PURPOSE);
 			Join<School,District> school_district = target_school.join(School_.DISTRICT);
 			Join<School,SchoolStatus> school_status = target_school.join(School_.SCHOOL_STATUS);
+			Join<School,EducationalLevel> school_level = target_school.join(School_.EDUCATIONAL_LEVEL);
 			if(!ObjectUtils.isEmpty(assign)) {
 				if(assign)
-				 target_user = root.join(TargetSchool_.USER);
+				 target_user = root.join(Task_.USER);
 			
 			}
 			Predicate p = builder.conjunction();
 			if(!ObjectUtils.isEmpty(key)) {
 				Predicate schoolName = builder.like(target_school.get(School_.NAME), "%" + key + "%");	
 				Predicate repr = builder.like(target_school.get(School_.REPR_NAME), "%" + key + "%");
-				Predicate year = builder.like(root.get(TargetSchool_.SCHOOL_YEAR), "%" + key + "%");	
+				Predicate year = builder.like(root.get(Task_.SCHOOL_YEAR), "%" + key + "%");	
 				Predicate user = builder.like(target_user.get(User_.USERNAME), "%" + key + "%");
 				Predicate full = builder.like(target_user.get(User_.FULL_NAME), "%" + key + "%");
 				p = builder.or(schoolName,repr,year,user,full);
@@ -114,10 +117,10 @@ public class TargetServiceImpl implements ITargetSchoolService {
 				p = builder.and(p, builder.equal(target_school.get(School_.TYPE), type));
 			}
 			if(!ObjectUtils.isEmpty(educationalLevel)) {
-				p = builder.and(p, builder.like(target_school.get(School_.EDUCATIONAL_LEVEL), "%" +educationalLevel+ "%"));
+				p = builder.and(p, builder.like(school_level.get(EducationalLevel_.NAME), "%" +educationalLevel+ "%"));
 			}
 			if(!ObjectUtils.isEmpty(schoolYear)) {
-				p = builder.and(p, builder.equal(root.get(TargetSchool_.SCHOOL_YEAR), schoolYear));
+				p = builder.and(p, builder.equal(root.get(Task_.SCHOOL_YEAR), schoolYear));
 			}
 			if(!ObjectUtils.isEmpty(status)) {
 				p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME), status));
@@ -136,9 +139,9 @@ public class TargetServiceImpl implements ITargetSchoolService {
 			p = builder.and(p, builder.equal(target_user.get(User_.USERNAME), username));
 			}
 			if(!ObjectUtils.isEmpty(purpose)) {
-				p = builder.and(p, builder.equal(target_purpose.get(TargetPurpose_.NAME),purpose));
+				p = builder.and(p, builder.equal(target_purpose.get(Purpose_.NAME),purpose));
 			}
-				p = builder.and(p, builder.isTrue(root.get(TargetSchool_.IS_ACTIVE)));
+				p = builder.and(p, builder.isTrue(root.get(Task_.IS_ACTIVE)));
 			
 			return p;
 		}, paging(page, limit, column, direction));
@@ -147,8 +150,8 @@ public class TargetServiceImpl implements ITargetSchoolService {
 		if (entities.hasContent()) {
 			entities.getContent().forEach(item -> {
 				TargetDTO dto = Mapper.getMapper().map(item, TargetDTO.class);
-				
-				dto.setPurpose(item.getTargetPurpose().getName());
+				dto.setEndDate(item.getEndDate());
+				dto.setPurpose(item.getPurpose().getName());
 				dto.setSchoolName(item.getSchool().getName());
 				dto.setDistrict(item.getSchool().getDistrict().getName());
 				dto.setReprIsMale(item.getSchool().isReprIsMale());
@@ -173,7 +176,7 @@ public class TargetServiceImpl implements ITargetSchoolService {
 				dto.setSchoolAddress(item.getSchool().getAddress());
 				dto.setSchoolType(item.getSchool().getType().getValues());
 				dto.setSchoolId(item.getSchool().getSchoolId());
-				dto.setPurpose(item.getTargetPurpose().getName());
+				dto.setPurpose(item.getPurpose().getName());
 				String cmt = item.getNote();
 				if(!ObjectUtils.isEmpty(cmt)) {
 					String supervisor = cmt.substring(1,cmt.indexOf("]"));
@@ -190,7 +193,7 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	}
 	@Override
 	public String delete(int targetId){
-		TargetSchool target = repo.getOne(targetId);
+		Task target = repo.getOne(targetId);
 		
 			if(!ObjectUtils.isEmpty(target.getServices())) {
 				return "Service is existed";
@@ -217,14 +220,14 @@ public class TargetServiceImpl implements ITargetSchoolService {
 //		}
 	@Override
 	public int insert(List<TargetDTO> dtos) {
-		TargetPurpose purpose = purposeRepo.findByName(dtos.get(0).getPurpose());
-		List<TargetSchool> targets = new ArrayList<>();
+		Purpose purpose = purposeRepo.findByName(dtos.get(0).getPurpose());
+		List<Task> targets = new ArrayList<>();
 		dtos.forEach(item ->{		
-			TargetSchool target = new TargetSchool();
+			Task target = new Task();
 			target.setActive(true);
 			target.setSchoolYear(item.getSchoolYear());
 			target.setSchool(schoolRepo.getOne(item.getSchoolId()));
-			target.setTargetPurpose(purpose);
+			target.setPurpose(purpose);
 			targets.add(target);
 		});
 		return repo.saveAll(targets).size();
@@ -236,9 +239,9 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	}
 	@Override
 	public List<LocationCard> getTargetSchoolName(String username, String key){
-		Page<TargetSchool> entities = (Page<TargetSchool>) repo.findAll((Specification<TargetSchool>) (root, query, builder) -> {
-			Join<TargetSchool, School> target_school = root.join(TargetSchool_.SCHOOL);
-			Join<TargetSchool, User> target_user = root.join(TargetSchool_.USER);
+		Page<Task> entities = (Page<Task>) repo.findAll((Specification<Task>) (root, query, builder) -> {
+			Join<Task, School> target_school = root.join(Task_.SCHOOL);
+			Join<Task, User> target_user = root.join(Task_.USER);
 			Predicate p = builder.conjunction();
 			if(!ObjectUtils.isEmpty(key)) {
 				p = builder.like(target_school.get(School_.NAME), "%" + key + "%");
@@ -273,9 +276,9 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	@Override
 	public void assignMutiple(List<TargetDTO> request) {
 		User user = userRepo.findByUsername(request.get(0).getUsername());
-		List<TargetSchool> targets = new ArrayList<>(); 
+		List<Task> targets = new ArrayList<>(); 
 		for (TargetDTO targetDTO : request) {
-			TargetSchool target = repo.getOne(targetDTO.getId());
+			Task target = repo.getOne(targetDTO.getId());
 			target.setUser(user);
 			target.setAssignDate(targetDTO.getAssignDate());
 			if(targetDTO.getNote()!= null)
@@ -285,15 +288,16 @@ public class TargetServiceImpl implements ITargetSchoolService {
 		repo.saveAll(targets);
 	}
 	public TargetDetails getOne(int id) {
-		TargetSchool item = repo.getOne(id);
+		Task item = repo.getOne(id);
 		TargetDetails dto = new TargetDetails();
 		dto.setId(item.getId());
 		dto.setSchoolYear(item.getSchoolYear());
-		dto.setPurpose(item.getTargetPurpose().getName());
+		dto.setPurpose(item.getPurpose().getName());
 		dto.setSchoolName(item.getSchool().getName());
 		dto.setDistrict(item.getSchool().getDistrict().getName());
 		dto.setReprIsMale(item.getSchool().isReprIsMale());
 		dto.setReprName(item.getSchool().getReprName());
+		dto.setEndDate(item.getEndDate());
 		dto.setReprEmail(item.getSchool().getReprEmail());
 		dto.setReprPhone(item.getSchool().getReprPhone());
 		dto.setAssignDate(item.getAssignDate());
@@ -315,7 +319,7 @@ public class TargetServiceImpl implements ITargetSchoolService {
 		dto.setSchoolAddress(item.getSchool().getAddress());
 		dto.setSchoolType(item.getSchool().getType().getValues());
 		dto.setSchoolId(item.getSchool().getSchoolId());
-		dto.setPurpose(item.getTargetPurpose().getName());
+		dto.setPurpose(item.getPurpose().getName());
 		String cmt = item.getNote();
 		if(!ObjectUtils.isEmpty(cmt)) {
 			String supervisor = cmt.substring(1,cmt.indexOf("]"));
@@ -336,7 +340,7 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	}
 	
 	public void updateTarget(int id,TargetUpdateRequest request) {
-		TargetSchool target = repo.getOne(id);
+		Task target = repo.getOne(id);
 		if(target !=null && !ObjectUtils.isEmpty(request.getReprEmail())&&!ObjectUtils.isEmpty(request.getReprName())
 				&&!ObjectUtils.isEmpty(request.getReprPhone())&&!ObjectUtils.isEmpty(request.getReprIsMale())) {
 			School school = target.getSchool();
@@ -348,16 +352,16 @@ public class TargetServiceImpl implements ITargetSchoolService {
 		}
 		target.setSchoolYear(request.getSchoolYear());
 		target.setNote(request.getNote());
-		if(!request.getPurpose().equalsIgnoreCase(target.getTargetPurpose().getName()))
-		target.setTargetPurpose(purposeRepo.findByName(request.getPurpose()));
+		if(!request.getPurpose().equalsIgnoreCase(target.getPurpose().getName()))
+		target.setPurpose(purposeRepo.findByName(request.getPurpose()));
 		repo.save(target);
 	}
 	@Override
 	public void updatePurposeNote(int id, NotePurposeRequest request) {
 		if(!ObjectUtils.isEmpty(request.getNote())||!ObjectUtils.isEmpty(request.getPurpose())) {
-		TargetSchool target = repo.getOne(id);
-		if(!target.getTargetPurpose().getName().equalsIgnoreCase(request.getPurpose()))
-			target.setTargetPurpose(purposeRepo.findByName(request.getPurpose()));
+		Task target = repo.getOne(id);
+		if(!target.getPurpose().getName().equalsIgnoreCase(request.getPurpose()))
+			target.setPurpose(purposeRepo.findByName(request.getPurpose()));
 		
 		target.setNote(request.toString());
 		
@@ -366,7 +370,7 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	}
 	@Override
 	public void unassign(int targetId) {
-		TargetSchool target = repo.getOne(targetId);
+		Task target = repo.getOne(targetId);
 		if(!ObjectUtils.isEmpty(target.getUser())) {
 			target.setUser(null);
 			repo.save(target);
@@ -407,7 +411,7 @@ public class TargetServiceImpl implements ITargetSchoolService {
 	
 	@Override
 	public List<TargetTimelineItem> getTimeline(int targetId){
-		Optional<TargetSchool> target = repo.findById(targetId);
+		Optional<Task> target = repo.findById(targetId);
 		List<TargetTimelineItem> list = new ArrayList<TargetTimelineItem>();
 		List<Report> reports = target.get().getReports();
 		if(!ObjectUtils.isEmpty(reports))

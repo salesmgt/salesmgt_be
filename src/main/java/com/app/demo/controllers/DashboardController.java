@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.demo.dtos.DashboardDTO;
-import com.app.demo.services.ITargetSchoolService;
+import com.app.demo.services.ITaskSchoolService;
 
 @CrossOrigin
 @RestController
 @RequestMapping(path = "/dashboard")
 public class DashboardController {
 	@Autowired 
-	private ITargetSchoolService service;
+	private ITaskSchoolService service;
 	
 	@GetMapping
 	private DashboardDTO getDashboard(){	

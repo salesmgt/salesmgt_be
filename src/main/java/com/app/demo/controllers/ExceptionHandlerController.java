@@ -26,6 +26,7 @@ public class ExceptionHandlerController {
 	    public ErrorMessage handleAllException(Exception ex, WebRequest request) {
 	        return new ErrorMessage(403, ex.getMessage());
 	    }
+	    */
 	 @ExceptionHandler(RuntimeException.class)
 	    @ResponseStatus(value = HttpStatus.FORBIDDEN)
 	    public ErrorMessage runTime(RuntimeException ex) {
@@ -36,7 +37,7 @@ public class ExceptionHandlerController {
 	    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	    public ErrorMessage indexOutOfBoundException(Exception ex,  WebRequest request) {
 	        return new ErrorMessage(400, "Đối tượng đã tồn tại");
-	    }/*
+	    }
 	 @ExceptionHandler(NullPointerException.class)   
 	 @ResponseStatus(value = HttpStatus.NOT_FOUND)
 	    public ErrorMessage catchNullPointerException(Exception ex,  WebRequest request) {
@@ -48,7 +49,7 @@ public class ExceptionHandlerController {
 	    public ErrorMessage catchSQLException(SQLIntegrityConstraintViolationException ex) {
 		 String cmt = ex.getMessage();
 		 return 
-	        	 new ErrorMessage(409, "Error at "+cmt/*.split("'")[1);
+	        	 new ErrorMessage(409, "Error at "+cmt/*.split("'")[1]*/);
 	    }
 	 
 	 @ExceptionHandler(IllegalStateException.class)   

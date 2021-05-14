@@ -61,7 +61,7 @@ public class School extends Auditable<String> {
 	private double latitude;
 
 	@OneToMany(mappedBy = "school", fetch = FetchType.LAZY)
-	private List<TargetSchool> targetSchools;
+	private List<Task> tasks;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "school_status_id")

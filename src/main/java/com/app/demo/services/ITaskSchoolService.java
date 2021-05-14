@@ -11,7 +11,7 @@ import com.app.demo.dtos.TargetTimelineItem;
 import com.app.demo.dtos.TargetUpdateRequest;
 import com.app.demo.models.SchoolType;
 
-public interface ITargetSchoolService {
+public interface ITaskSchoolService {
 	Paging<TargetDTO> getTargetByFilter(Boolean assign,String status,String username,String key,String purpose,SchoolType type, String educationalLevel,String fullName, String district, String schoolYear, int page, int limit, String column, String direction);
 	//void assign(int targetId, String username);
 	List<String> getSchoolYear();

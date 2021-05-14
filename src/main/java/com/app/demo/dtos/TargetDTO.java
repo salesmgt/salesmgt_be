@@ -13,8 +13,6 @@ import lombok.Setter;
 @Getter
 public class TargetDTO {
 	private int id;
-	private int districtId;
-	private int levelId;
 	private String purpose;
 	private String schoolName;
 	private String fullName;
@@ -35,6 +33,7 @@ public class TargetDTO {
 	private String note;
 	private String noteBy;
 	private Date assignDate;
+	private Date endDate;
 	private String schoolId;
 	
 	public String toString() {

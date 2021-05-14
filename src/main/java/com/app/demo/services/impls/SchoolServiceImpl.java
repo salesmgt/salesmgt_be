@@ -33,13 +33,13 @@ import com.app.demo.models.District_;
 import com.app.demo.models.EducationalLevel;
 import com.app.demo.models.SchoolType;
 import com.app.demo.models.School_;
-import com.app.demo.models.TargetSchool;
-import com.app.demo.models.TargetSchool_;
+import com.app.demo.models.Task;
+import com.app.demo.models.Task_;
 import com.app.demo.repositories.DistrictRepository;
 import com.app.demo.repositories.EducationalLevelRepository;
 import com.app.demo.repositories.SchoolRepository;
 import com.app.demo.repositories.SchoolStatusRepository;
-import com.app.demo.repositories.TargetRepository;
+import com.app.demo.repositories.TaskRepository;
 import com.app.demo.services.ISchoolService;
 import com.app.demo.utils.VNCharacterUtils;
 
@@ -54,7 +54,7 @@ public class SchoolServiceImpl implements ISchoolService {
 	
 	
 	@Autowired
-	private TargetRepository targetRepo;
+	private TaskRepository targetRepo;
 	
 	@Autowired
 	private DistrictRepository districtRepo;
@@ -239,16 +239,16 @@ public class SchoolServiceImpl implements ISchoolService {
 	public Paging<SchoolDTO> getSchoolForTarget(String district, String status, String type, String level,
 			String schoolYear,int page, int limit, String column, String direction) {
 		Page<School> pageEntities = (Page<School>)repo.findAll((Specification<School>) (root, query, builder) -> {
-			Join<School,TargetSchool> target_school = root.join(School_.TARGET_SCHOOLS,JoinType.LEFT);
+			Join<School,Task> target_school = root.join(School_.TASKS,JoinType.LEFT);
 			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
 			Join<School, District> school = root.join(School_.DISTRICT);
 			Predicate p = builder.conjunction();
 			ArrayList<School> list = new ArrayList<School>();
-			for (TargetSchool element : targetRepo.findBySchoolYear(schoolYear)) {
+			for (Task element : targetRepo.findBySchoolYear(schoolYear)) {
 				list.add(element.getSchool());
 			}
-			Predicate listNot = builder.or(target_school.get(TargetSchool_.SCHOOL).in(list).not());
-			Predicate year = builder.isNull(target_school.get(TargetSchool_.SCHOOL_YEAR));
+			Predicate listNot = builder.or(target_school.get(Task_.SCHOOL).in(list).not());
+			Predicate year = builder.isNull(target_school.get(Task_.SCHOOL_YEAR));
 			p = builder.or(listNot,year);
 			if(!ObjectUtils.isEmpty(district))
 				p = builder.and(p, builder.equal(school.get(District_.NAME), district));
@@ -300,14 +300,14 @@ public class SchoolServiceImpl implements ISchoolService {
 	}
 	@Override
 	public List<SchoolTimelineItem> getTimeline(String schoolId){
-		List<TargetSchool> targets = targetRepo.findBySchoolId(schoolId);
+		List<Task> targets = targetRepo.findBySchoolId(schoolId);
 		List<SchoolTimelineItem> list = new ArrayList<>();
-		for (TargetSchool item : targets) {
+		for (Task item : targets) {
 			SchoolTimelineItem timeline = new SchoolTimelineItem();
 			timeline.setTargetId(item.getId());
 			timeline.setStatus(item.getStatus());
 			timeline.setSchoolYear(item.getSchoolYear());
-			timeline.setPurpose(item.getTargetPurpose().getName());
+			timeline.setPurpose(item.getPurpose().getName());
 			if(!ObjectUtils.isEmpty(item.getUser())){
 				timeline.setFullName(item.getUser().getFullName());
 				timeline.setAvatar(item.getUser().getAvatar());

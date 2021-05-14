@@ -22,16 +22,16 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name="target_school_purpose")
+@Table(name="purpose")
 @EntityListeners(AuditingEntityListener.class)
-public class TargetPurpose extends Auditable<String> {
+public class Purpose extends Auditable<String> {
 	@Id
-	@Column(name = "target_school_purpose_id",length = 10)
+	@Column(length = 10)
 	private String id;
 	
-	@Column(name = "target_school_purpose_name",length = 50)
+	@Column(length = 50)
 	private String name;
 	
-	@OneToMany(mappedBy="targetPurpose", fetch = FetchType.LAZY)
-	private List<TargetSchool> targetSchools;
+	@OneToMany(mappedBy="purpose", fetch = FetchType.LAZY)
+	private List<Task> tasks;
 }

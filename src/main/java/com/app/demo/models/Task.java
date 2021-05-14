@@ -27,11 +27,10 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "target_school")
+@Table(name = "task")
 @EntityListeners(AuditingEntityListener.class)
-public class TargetSchool extends Auditable<String> {
+public class Task extends Auditable<String> {
 	@Id
-	@Column(name="target_school_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	@Column(length = 10)
@@ -45,8 +44,8 @@ public class TargetSchool extends Auditable<String> {
 	private String note;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="target_school_purpose_id")
-	private TargetPurpose targetPurpose;
+	@JoinColumn(name="purpose_id")
+	private Purpose purpose;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="school_id")
@@ -56,8 +55,8 @@ public class TargetSchool extends Auditable<String> {
 	@JoinColumn(name="user_id")
 	private User user;
 	
-	@OneToMany(mappedBy="targetSchool", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy="task", fetch = FetchType.LAZY)
 	private List<Report> reports;
-	@OneToMany(mappedBy="targetSchool", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy="task", fetch = FetchType.LAZY)
 	private List<com.app.demo.models.Service> services;
 }

@@ -24,15 +24,15 @@ import com.app.demo.dtos.TargetDetails;
 import com.app.demo.dtos.TargetTimelineItem;
 import com.app.demo.dtos.TargetUpdateRequest;
 import com.app.demo.models.SchoolType;
-import com.app.demo.services.ITargetSchoolService;
+import com.app.demo.services.ITaskSchoolService;
 
 @CrossOrigin
 @RestController
 @RequestMapping(path = "/targets")
-public class TargetController {
+public class TaskController {
 	
 	@Autowired
-	ITargetSchoolService service;
+	ITaskSchoolService service;
 	
 	@GetMapping
 	public Paging<TargetDTO> getTargetByFilter(@RequestParam(required = false) String key,

@@ -19,6 +19,7 @@ public class TargetDetails {
 	private String fullName;
 	private String avatar;
 	private String reprName;
+	private Date endDate;
 	private boolean reprIsMale;
 	private String username;
 	private String district;

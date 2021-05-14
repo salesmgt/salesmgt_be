@@ -8,17 +8,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.app.demo.services.ITaskSchoolService;
+import com.app.demo.services.IServiceTypeService;
 
 @CrossOrigin
 @RestController
-@RequestMapping(path = "/school-years")
-public class SchoolYearController {
+@RequestMapping(path = "/serviceTypes")
+public class ServiceTypeController {
 	@Autowired
-	private ITaskSchoolService service;
-
+	private IServiceTypeService service;
+	
 	@GetMapping
-	public List<String> getSchoolYears(){
-		return service.getSchoolYear();
+	public List<?> getAll(){
+		return service.getList();
 	}
+
 }
