@@ -20,5 +20,5 @@ public class ReportDetails {
     private String positivity;
     private String difficulty;
     private String futurePlan;
-    private Date date;
+    private String date;
 }

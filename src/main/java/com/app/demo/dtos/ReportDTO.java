@@ -1,5 +1,7 @@
 package com.app.demo.dtos;
 
+import java.util.Date;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -33,7 +35,9 @@ public class ReportDTO {
     private String commentedPerson;
     private String contextComments;
     private String schoolYear;
-    private int targetId;
+    private int taskId;
+    private Date endDate;
+    private Date assignDate;
 	
 	@Override
 	public String toString() {

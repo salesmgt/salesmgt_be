@@ -1,9 +1,12 @@
 package com.app.demo.services.impls;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.TreeMap;
 
 import javax.persistence.criteria.Join;
@@ -25,9 +28,9 @@ import com.app.demo.dtos.LocationCard;
 import com.app.demo.dtos.NotePurposeRequest;
 import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.ServiceDTO;
-import com.app.demo.dtos.TargetDTO;
-import com.app.demo.dtos.TargetDetails;
-import com.app.demo.dtos.TargetTimelineItem;
+import com.app.demo.dtos.TaskDTO;
+import com.app.demo.dtos.TaskDetails;
+import com.app.demo.dtos.TaskTimelineItem;
 import com.app.demo.dtos.TargetUpdateRequest;
 import com.app.demo.dtos.TotalSchoolDTO;
 import com.app.demo.mappers.Mapper;
@@ -48,13 +51,13 @@ import com.app.demo.models.School_;
 import com.app.demo.models.Task;
 import com.app.demo.models.Task_;
 import com.app.demo.repositories.SchoolRepository;
-import com.app.demo.repositories.TargetPurposeRepository;
+import com.app.demo.repositories.PurposeRepository;
 import com.app.demo.repositories.TaskRepository;
 import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.ITaskSchoolService;
 
 @Service
-public class TargetServiceImpl implements ITaskSchoolService {
+public class TaskServiceImpl implements ITaskSchoolService {
 	@Autowired
 	private TaskRepository repo;
 	
@@ -65,7 +68,7 @@ public class TargetServiceImpl implements ITaskSchoolService {
 	private UserRepository userRepo;
 
 	@Autowired
-	private TargetPurposeRepository purposeRepo;
+	private PurposeRepository purposeRepo;
 	/**
 	 * Method có chức năng tạo đối tượng Pageable bằng cách xác định chiều sort của
 	 * Page (DES/ASC).
@@ -91,7 +94,7 @@ public class TargetServiceImpl implements ITaskSchoolService {
 	}
 	
 	@Override
-	public Paging<TargetDTO> getTargetByFilter(Boolean assign,String status,String username, String key,String purpose,SchoolType type,String educationalLevel,String fullName, String district, String schoolYear, int page, int limit, String column, String direction) {
+	public Paging<TaskDTO> getTargetByFilter(Boolean assign,String status,String username, String key,String purpose,SchoolType type,String educationalLevel,String fullName, String district, String schoolYear, int page, int limit, String column, String direction) {
 		Page<Task> entities = (Page<Task>) repo.findAll((Specification<Task>) (root, query, builder) -> {
 			Join<Task, User> target_user = root.join(Task_.USER,JoinType.LEFT);
 			Join<Task, School> target_school = root.join(Task_.SCHOOL);			
@@ -145,12 +148,19 @@ public class TargetServiceImpl implements ITaskSchoolService {
 			
 			return p;
 		}, paging(page, limit, column, direction));
-		List<TargetDTO> results = new ArrayList<TargetDTO>();
-		Paging<TargetDTO> targetPage = new Paging<TargetDTO>();
+		List<TaskDTO> results = new ArrayList<TaskDTO>();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		Paging<TaskDTO> targetPage = new Paging<TaskDTO>();
 		if (entities.hasContent()) {
 			entities.getContent().forEach(item -> {
-				TargetDTO dto = Mapper.getMapper().map(item, TargetDTO.class);
-				dto.setEndDate(item.getEndDate());
+				TaskDTO dto = Mapper.getMapper().map(item, TaskDTO.class);
+				dto.setEndDate(null);
+				if(!ObjectUtils.isEmpty(item.getEndDate()))
+				dto.setEndDate(sdf.format(item.getEndDate()));
+				dto.setAssignDate(null);
+				if(!ObjectUtils.isEmpty(item.getAssignDate()))
+				dto.setAssignDate(sdf.format(item.getAssignDate()));	
 				dto.setPurpose(item.getPurpose().getName());
 				dto.setSchoolName(item.getSchool().getName());
 				dto.setDistrict(item.getSchool().getDistrict().getName());
@@ -162,6 +172,7 @@ public class TargetServiceImpl implements ITaskSchoolService {
 				dto.setUserPhone(item.getUser().getPhone());
 				dto.setUserEmail(item.getUser().getEmail());
 				dto.setAvatar(item.getUser().getAvatar());
+				dto.setResult(item.getResult());
 				dto.setFullName(item.getUser().getFullName());
 				dto.setUsername(item.getUser().getUsername());
 				}else {
@@ -219,8 +230,10 @@ public class TargetServiceImpl implements ITaskSchoolService {
 //			return;
 //		}
 	@Override
-	public int insert(List<TargetDTO> dtos) {
+	public int insert(List<TaskDTO> dtos) {
 		Purpose purpose = purposeRepo.findByName(dtos.get(0).getPurpose());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		List<Task> targets = new ArrayList<>();
 		dtos.forEach(item ->{		
 			Task target = new Task();
@@ -228,6 +241,12 @@ public class TargetServiceImpl implements ITaskSchoolService {
 			target.setSchoolYear(item.getSchoolYear());
 			target.setSchool(schoolRepo.getOne(item.getSchoolId()));
 			target.setPurpose(purpose);
+			try {
+				target.setEndDate(sdf.parse(item.getEndDate()));
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			target.setResult("TBD");
 			targets.add(target);
 		});
 		return repo.saveAll(targets).size();
@@ -274,22 +293,28 @@ public class TargetServiceImpl implements ITaskSchoolService {
 	
 	@Transactional
 	@Override
-	public void assignMutiple(List<TargetDTO> request) {
+	public void assignMutiple(List<TaskDTO> request) {
 		User user = userRepo.findByUsername(request.get(0).getUsername());
 		List<Task> targets = new ArrayList<>(); 
-		for (TargetDTO targetDTO : request) {
-			Task target = repo.getOne(targetDTO.getId());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		for (TaskDTO taskDTO : request) {
+			Task target = repo.getOne(taskDTO.getId());
 			target.setUser(user);
-			target.setAssignDate(targetDTO.getAssignDate());
-			if(targetDTO.getNote()!= null)
-			target.setNote(targetDTO.toString());
+			try {
+				target.setAssignDate(sdf.parse(taskDTO.getAssignDate()));
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			if(taskDTO.getNote()!= null)
+			target.setNote(taskDTO.toString());
 			targets.add(target);
 		}
 		repo.saveAll(targets);
 	}
-	public TargetDetails getOne(int id) {
+	public TaskDetails getOne(int id) {
 		Task item = repo.getOne(id);
-		TargetDetails dto = new TargetDetails();
+		TaskDetails dto = new TaskDetails();
 		dto.setId(item.getId());
 		dto.setSchoolYear(item.getSchoolYear());
 		dto.setPurpose(item.getPurpose().getName());
@@ -297,16 +322,33 @@ public class TargetServiceImpl implements ITaskSchoolService {
 		dto.setDistrict(item.getSchool().getDistrict().getName());
 		dto.setReprIsMale(item.getSchool().isReprIsMale());
 		dto.setReprName(item.getSchool().getReprName());
-		dto.setEndDate(item.getEndDate());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		String assign = null;
+		String end = null;		
+		try {
+			if(!ObjectUtils.isEmpty(item.getAssignDate())) {
+				assign = sdf.format(item.getAssignDate());
+				dto.setAssignDate(sdf.parse(assign));
+			}
+			if(!ObjectUtils.isEmpty(item.getAssignDate())) {
+				end = sdf.format(item.getEndDate());
+				dto.setEndDate(sdf.parse(end));
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		
 		dto.setReprEmail(item.getSchool().getReprEmail());
 		dto.setReprPhone(item.getSchool().getReprPhone());
-		dto.setAssignDate(item.getAssignDate());
+		
 		dto.setSchoolStatus(item.getSchool().getSchoolStatus().getName());
 		if(!ObjectUtils.isEmpty(item.getUser())){
 		dto.setUserPhone(item.getUser().getPhone());
 		dto.setUserEmail(item.getUser().getEmail());
 		dto.setAvatar(item.getUser().getAvatar());
 		dto.setFullName(item.getUser().getFullName());
+		dto.setResult(item.getResult());
 		dto.setUsername(item.getUser().getUsername());
 		}else {
 			dto.setUserPhone(null);
@@ -334,7 +376,7 @@ public class TargetServiceImpl implements ITaskSchoolService {
 			}		
 		}
 		if(!ObjectUtils.isEmpty(memo)) {
-			dto.setMemorandums(memo);
+			dto.setServices(memo);
 		}
 		return dto;
 	}
@@ -410,20 +452,22 @@ public class TargetServiceImpl implements ITaskSchoolService {
 	}
 	
 	@Override
-	public List<TargetTimelineItem> getTimeline(int targetId){
+	public List<TaskTimelineItem> getTimeline(int targetId){
 		Optional<Task> target = repo.findById(targetId);
-		List<TargetTimelineItem> list = new ArrayList<TargetTimelineItem>();
+		List<TaskTimelineItem> list = new ArrayList<TaskTimelineItem>();
 		List<Report> reports = target.get().getReports();
 		if(!ObjectUtils.isEmpty(reports))
 			for (Report item : reports) {
-				TargetTimelineItem timeline = new TargetTimelineItem(item.getId(), "report", item.getDate(),item.getDescription(), null, null, item.isSuccess(), null, null, 0);
+				TaskTimelineItem timeline = new TaskTimelineItem(item.getId(), "report", item.getDate(),item.getDescription(), null, null, item.isSuccess(), null, null, 0,null);
 				list.add(timeline);
 			}
 		List<com.app.demo.models.Service> services = target.get().getServices();
 		if(!ObjectUtils.isEmpty(services))
 			for (com.app.demo.models.Service item : services) {
-				TargetTimelineItem timeline = new TargetTimelineItem(item.getId(), "service", item.getApproveDate(), null, item.getStatus(),item.getServiceType().getName() , false, item.getStartDate(), item.getEndDate(), item.getClassNumber());
+				if(item.getStatus().equalsIgnoreCase("approved")) {
+				TaskTimelineItem timeline = new TaskTimelineItem(item.getId(), "service", item.getSubmitDate(), null, item.getStatus(),item.getServiceType().getName() , false, item.getStartDate(), item.getEndDate(), item.getClassNumber(),item.getApproveDate());
 				list.add(timeline);
+				}
 				}
 		 Collections.sort(list);
 			

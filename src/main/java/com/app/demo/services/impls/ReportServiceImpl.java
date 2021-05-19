@@ -1,5 +1,6 @@
 package com.app.demo.services.impls;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -102,6 +103,7 @@ public class ReportServiceImpl implements IReportService{
 		reportPage.setTotalElements(entities.getTotalElements());
 		reportPage.setTotalPage(entities.getTotalPages());
 		}
+		
 		return reportPage;
 	}
 	private List<ReportDTO> convertToDTO(List<Report> entities) {
@@ -120,7 +122,7 @@ public class ReportServiceImpl implements IReportService{
 				dto.setLevel(item.getTask().getSchool().getEducationalLevel().getName());
 				dto.setSchoolName(item.getTask().getSchool().getName());
 				dto.setSchoolYear(item.getTask().getSchoolYear());
-				dto.setTargetId(item.getTask().getId());
+				dto.setTaskId(item.getTask().getId());
 				dto.setPurpose(item.getTask().getPurpose().getName());
 				String cmt = item.getSupervisorComment();
 				if(!ObjectUtils.isEmpty(cmt)) {
@@ -136,11 +138,17 @@ public class ReportServiceImpl implements IReportService{
 	@Override
 	public Report update(int id,ReportDetails dto) {
 		Report entity = repo.getOne(id);
+		SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		entity.setId(id);
 		entity.setDifficulty(dto.getDifficulty());
 		entity.setFuturePlan(dto.getFuturePlan());
 		entity.setDescription(dto.getDescription());
-		entity.setDate(dto.getDate());
+		try {
+			entity.setDate(sdf.parse(dto.getDate()));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 		entity.setPositivity(dto.getPositivity());
 		entity.setSuccess(dto.isSuccess());
 		return repo.save(entity);		
@@ -161,18 +169,16 @@ public class ReportServiceImpl implements IReportService{
 		try {
 			
 		for (ReportDTO dto : request) {
-			dupplicate = repo.findReportByDateAndTarget(dto.getDate().substring(0,10), dto.getTargetId());
-			System.out.println(dupplicate);
+			dupplicate = repo.findReportByDateAndTarget(dto.getDate().substring(0,10), dto.getTaskId());
 			if(!ObjectUtils.isEmpty(dupplicate)){
 				return "This school ["+dupplicate.get(0).getTask().getSchool().getName()+"] have already submitted report";
 			}
 			Report entity = new Report();
-			Task target = targetRepo.getOne(dto.getTargetId());
+			Task target = targetRepo.getOne(dto.getTaskId());
 			entity.setDifficulty(dto.getDifficulty());
 			entity.setFuturePlan(dto.getFuturePlan());
 			entity.setDescription(dto.getDescription());
-			entity.setDate(sdf
-			        .parse(dto.getDate()));
+			entity.setDate(sdf.parse(dto.getDate()));
 			entity.setPositivity(dto.getPositivity());
 			entity.setSuccess(dto.isSuccess());
 			entity.setTask(target);
@@ -191,6 +197,10 @@ public class ReportServiceImpl implements IReportService{
 		Report item = repo.getOne(id);
 		ReportDTO dto = Mapper.getMapper().map(item, ReportDTO.class);
 		dto.setId(item.getId());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		String assign = sdf.format(item.getTask().getAssignDate());
+		String end = sdf.format(item.getTask().getEndDate());
 		dto.setPurpose(item.getTask().getPurpose().getName());
 		dto.setUsername(item.getTask().getUser().getUsername());
 		dto.setAddress(item.getTask().getSchool().getAddress());
@@ -202,7 +212,13 @@ public class ReportServiceImpl implements IReportService{
 		dto.setSchoolName(item.getTask().getSchool().getName());
 		dto.setSchoolYear(item.getTask().getSchoolYear());
 		dto.setFullName(item.getTask().getUser().getFullName());
-		dto.setTargetId(item.getTask().getId());
+		dto.setTaskId(item.getTask().getId());
+		try {
+			dto.setEndDate(sdf.parse(end));
+			dto.setAssignDate(sdf.parse(assign));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 		String cmt = item.getSupervisorComment();
 		if(!ObjectUtils.isEmpty(cmt)) {
 		String supervisor = cmt.substring(1,cmt.indexOf("]"));

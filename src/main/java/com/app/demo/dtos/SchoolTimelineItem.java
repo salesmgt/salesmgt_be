@@ -10,12 +10,12 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 public class SchoolTimelineItem implements Comparable<SchoolTimelineItem>{
-	private int targetId;
+	private int taskId;
 	private String fullName;
 	private String avatar;
 	private String schoolYear;
 	private String purpose;
-	private String status;
+	private String result;
 	private String services;
 	@Override
 	public int compareTo(SchoolTimelineItem o) {

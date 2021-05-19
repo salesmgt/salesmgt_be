@@ -25,6 +25,7 @@ import com.app.demo.dtos.Principle;
 import com.app.demo.dtos.SchoolDTO;
 import com.app.demo.dtos.SchoolStatusRequest;
 import com.app.demo.dtos.SchoolTimelineItem;
+import com.app.demo.dtos.SuggestionSalesman;
 import com.app.demo.models.SchoolType;
 import com.app.demo.services.ISchoolService;
 
@@ -114,7 +115,7 @@ public class SchoolController {
 			}
 
 	@PutMapping("/{id}")
-	public String update(@RequestBody @Valid SchoolDTO school, @PathVariable String id, BindingResult bindingResult) {
+	public String update(@RequestBody @Valid SchoolDTO school, @PathVariable String id) {
 		
 		iSchoolService.update(id,school);
 		return "Updating is done";
@@ -131,16 +132,7 @@ public class SchoolController {
 	}
 	@PostMapping("/import")
 	public String importSchool(@RequestBody List<SchoolDTO> dtos) throws SQLIntegrityConstraintViolationException {
-		int result = 0;
-		try {
-		 result = iSchoolService.saveAll(dtos);
-		}catch(Exception e) {
-			 if(e.getCause() != null && e.getCause().getCause() instanceof SQLIntegrityConstraintViolationException) {
-				 SQLIntegrityConstraintViolationException ex = (SQLIntegrityConstraintViolationException)e.getCause().getCause();
-				 throw new SQLIntegrityConstraintViolationException(ex.getMessage());
-			 }	
-		}
-		return "đã thêm "+result;
+		return iSchoolService.saveAll(dtos);
 	}
 	@PatchMapping("/{schoolId}")
 	public String updateStatus(@RequestBody SchoolStatusRequest request, @PathVariable String schoolId) {
@@ -156,5 +148,9 @@ public class SchoolController {
 	@GetMapping("/timeline/{schoolId}")
 	public List<SchoolTimelineItem> getTimeline(@PathVariable String schoolId) {
 		return iSchoolService.getTimeline(schoolId);
+	}
+	@PostMapping("/suggestion")
+	public List<SuggestionSalesman> getSuggestion(@RequestBody List<String> schoolId) {
+		return iSchoolService.getSuggestion(schoolId);
 	}
 }

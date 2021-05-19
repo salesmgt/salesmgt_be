@@ -1,8 +1,11 @@
 package com.app.demo.services.impls;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.TimeZone;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
@@ -37,84 +40,182 @@ import com.app.demo.services.IServiceService;
 public class ServiceImpl implements IServiceService {
 
 	@Autowired
-	ServiceRepository repo; 
+	private ServiceRepository repo;
 	@Autowired
-	TaskRepository targetRepo;
+	private TaskRepository targetRepo;
 	@Autowired
-	ServiceTypeRepository typeRepo;
-	
+	private ServiceTypeRepository typeRepo;
+
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 	@Override
 	public void update(int id, ServiceDTO dto) {
-		com.app.demo.models.Service entity = repo.getOne(id);
-		entity.setApproveDate(dto.getApproveDate());
-		entity.setClassNumber(dto.getClassNumber());
-		entity.setEndDate(dto.getEndDate());
-		entity.setStartDate(dto.getStartDate());
-		entity.setNote(dto.getNote());
-		entity.setServiceType(typeRepo.findByName(dto.getServiceType()));
-		entity.setId(id);
-		repo.save(entity);
+		try {
+			com.app.demo.models.Service entity = repo.getOne(id);
+			entity.setClassNumber(dto.getClassNumber());
+			sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+			entity.setApproveDate(sdf.parse(dto.getApproveDate()));
+			entity.setStartDate(sdf.parse(dto.getStartDate().substring(0, 10)));
+			Date end = sdf.parse(dto.getEndDate().substring(0, 10));
+			entity.setEndDate(end);
+			String strNowDate = sdf.format(new Date());
+			Date now = sdf.parse(strNowDate);
+			if (now.compareTo(end) > 0)
+				entity.setExpired(true);
+			else
+				entity.setExpired(false);
+			entity.setNote(dto.getNote());
+			entity.setServiceType(typeRepo.findByName(dto.getServiceType()));
+			entity.setId(id);
+			repo.save(entity);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
+
 	@Override
 	public void insert(ServiceDTO dto) {
 		com.app.demo.models.Service entity = Mapper.getMapper().map(dto, com.app.demo.models.Service.class);
-		Task target = targetRepo.getOne(dto.getTargetSchoolId());
+		SimpleDateFormat sdff = new SimpleDateFormat("yyyy-MM-dd");
+		sdff.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		entity.setApproveDate(null);
+		try {
+			entity.setStartDate(sdff.parse(dto.getStartDate().substring(0, 10)));
+			Date end = sdff.parse(dto.getEndDate().substring(0, 10));
+			entity.setEndDate(end);
+			String strNowDate = sdff.format(new Date());
+			Date now = sdff.parse(strNowDate);
+			Date submit = sdf.parse(dto.getSubmitDate());
+			entity.setSubmitDate(submit);
+			if (now.compareTo(end) > 0)
+				entity.setExpired(true);
+			else
+				entity.setExpired(false);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		ServiceType type = typeRepo.findByName(dto.getServiceType());
+		entity.setServiceType(type);
+		Task target = targetRepo.getOne(dto.getTaskId());
 		entity.setTask(target);
+		entity.setStatus("pending");
+		repo.save(entity);
+		targetRepo.save(target);
+	}
+
+	public void approve(int id) {
+		com.app.demo.models.Service entity = repo.getOne(id);
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		String strNowDate = sdf.format(new Date());
+		try {
+			entity.setApproveDate(sdf.parse(strNowDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		entity.setStatus("approved");
 		repo.save(entity);
 	}
-	public void approve(int id) {
-		Optional<com.app.demo.models.Service> entity = repo.findById(id);
-		
+
+	public void reject(int id, String content) {
+		com.app.demo.models.Service entity = repo.getOne(id);
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		String strNowDate = sdf.format(new Date());
+		try {
+			entity.setApproveDate(sdf.parse(strNowDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		entity.setStatus("rejected");
+		entity.setRejectedReason(content);
+		repo.save(entity);
 	}
-	
+
 	private Pageable paging(int page, int limit, String column, String direction) {
 		Pageable paging;
 		if (direction.equalsIgnoreCase("DESC")) {
 			paging = PageRequest.of(page, limit, Sort.by(column).descending());
-		}
-		else {
+		} else {
 			paging = PageRequest.of(page, limit, Sort.by(column).ascending());
 		}
 		return paging;
 	}
-	
+
 	@Override
-	public Paging<ServiceDTO> getServiceByFilter(String status,String schoolName,String serviceType, String username,String key,
-												String schoolYear,int page, int limit, String column, String direction){
-	Page<com.app.demo.models.Service> pageEntities = (Page<com.app.demo.models.Service>)repo.findAll((Specification<com.app.demo.models.Service>) (root, query,criteriaBuilder) -> {
-		Join<com.app.demo.models.Service,Task> service_target = root.join(Service_.TASK);
-		Join<Task,School> service_target_school = service_target.join(Task_.SCHOOL);
-		Join<Task,User> service_target_user = service_target.join(Task_.USER);
-		Join<com.app.demo.models.Service,ServiceType> service_type = root.join(Service_.SERVICE_TYPE);
-		Predicate p = criteriaBuilder.conjunction();
-		if (!ObjectUtils.isEmpty(key)) {
-			Predicate school =  criteriaBuilder.like(service_target_school.get(School_.NAME), "%" + key + "%");
-			Predicate fullName =  criteriaBuilder.like(service_target_user.get(User_.FULL_NAME), "%" + key + "%");
-			p = criteriaBuilder.or(school,fullName);
-		}
-		if (!ObjectUtils.isEmpty(status)) {
-			p = criteriaBuilder.and(p,criteriaBuilder.equal(root.get(Service_.STATUS), status));
-		}
-		if (!ObjectUtils.isEmpty(schoolYear)) {
-			p = criteriaBuilder.and(p,criteriaBuilder.equal(service_target.get(Task_.SCHOOL_YEAR), schoolYear));
-		}
-		if (!ObjectUtils.isEmpty(serviceType)) {
-			p = criteriaBuilder.and(p,criteriaBuilder.equal(service_type.get(ServiceType_.NAME), serviceType));
-		}
-		return p;
-	}, paging(page, limit, column, direction));
-	List<ServiceDTO> results = new ArrayList<ServiceDTO>();
-	Paging<ServiceDTO> servicePage = new Paging<ServiceDTO>();
-	if (pageEntities.hasContent()) {
-		pageEntities.getContent().forEach(service -> {
-			ServiceDTO dto = Mapper.getMapper().map(service, ServiceDTO.class);
-			
-			results.add(dto);
+	public Paging<ServiceDTO> getServiceByFilter(Boolean isExpired, String status, String username, String serviceType,
+			String key, String schoolYear, int page, int limit, String column, String direction) {
+		Page<com.app.demo.models.Service> pageEntities = (Page<com.app.demo.models.Service>) repo
+				.findAll((Specification<com.app.demo.models.Service>) (root, query, criteriaBuilder) -> {
+					Join<com.app.demo.models.Service, Task> service_target = root.join(Service_.TASK);
+					Join<Task, School> service_target_school = service_target.join(Task_.SCHOOL);
+					Join<Task, User> service_target_user = service_target.join(Task_.USER);
+					Join<com.app.demo.models.Service, ServiceType> service_type = root.join(Service_.SERVICE_TYPE);
+					Predicate p = criteriaBuilder.conjunction();
+					if (!ObjectUtils.isEmpty(key)) {
+						Predicate school = criteriaBuilder.like(service_target_school.get(School_.NAME),
+								"%" + key + "%");
+						Predicate name = criteriaBuilder.like(service_target_user.get(User_.FULL_NAME),
+								"%" + key + "%");
+						Predicate username1 = criteriaBuilder.like(service_target_user.get(User_.USERNAME),
+								"%" + key + "%");
+						p = criteriaBuilder.or(school, name, username1);
+					}
+					if (!ObjectUtils.isEmpty(status)) {
+						p = criteriaBuilder.and(p, criteriaBuilder.equal(root.get(Service_.STATUS), status));
+					}
+
+					if (!ObjectUtils.isEmpty(schoolYear)) {
+						p = criteriaBuilder.and(p,
+								criteriaBuilder.equal(service_target.get(Task_.SCHOOL_YEAR), schoolYear));
+					}
+					if (!ObjectUtils.isEmpty(serviceType)) {
+						p = criteriaBuilder.and(p,
+								criteriaBuilder.equal(service_type.get(ServiceType_.NAME), serviceType));
+					}
+					if (!ObjectUtils.isEmpty(isExpired)) {
+						if (isExpired)
+							p = criteriaBuilder.and(p, criteriaBuilder.isTrue(root.get(Service_.IS_EXPIRED)));
+						else
+							p = criteriaBuilder.and(p, criteriaBuilder.isFalse(root.get(Service_.IS_EXPIRED)));
+					}
+					if (!ObjectUtils.isEmpty(username)) {
+						p = criteriaBuilder.and(p,
+								criteriaBuilder.equal(service_target_user.get(User_.USERNAME), username));
+					}
+					return p;
+				}, paging(page, limit, column, direction));
+		List<ServiceDTO> results = new ArrayList<ServiceDTO>();
+		Paging<ServiceDTO> servicePage = new Paging<ServiceDTO>();
+		if (pageEntities.hasContent()) {
+			pageEntities.getContent().forEach(service -> {
+				ServiceDTO dto = Mapper.getMapper().map(service, ServiceDTO.class);
+				dto.setServiceType(service.getServiceType().getName());
+				dto.setAvatar(service.getTask().getUser().getAvatar());
+				dto.setFullName(service.getTask().getUser().getFullName());
+				dto.setUsername(service.getTask().getUser().getUsername());
+//			dto.setUsername(service.getTask().getUser().getUsername());)
+				dto.setSchoolName(service.getTask().getSchool().getName());
+				dto.setEducationLevel(service.getTask().getSchool().getEducationalLevel().getName());
+				results.add(dto);
 			});
-		servicePage.setList(results);
-		servicePage.setTotalElements(pageEntities.getTotalElements());
-		servicePage.setTotalPage(pageEntities.getTotalPages());
+			servicePage.setList(results);
+			servicePage.setTotalElements(pageEntities.getTotalElements());
+			servicePage.setTotalPage(pageEntities.getTotalPages());
+		}
+		return servicePage;
 	}
-	return servicePage;	
-	}	
+
+	@Override
+	public ServiceDTO getOne(int id) {
+		com.app.demo.models.Service entity = repo.getOne(id);
+		ServiceDTO dto = Mapper.getMapper().map(entity, ServiceDTO.class);
+		dto.setUsername(entity.getTask().getUser().getUsername());
+		dto.setFullName(entity.getTask().getUser().getFullName());
+		dto.setAvatar(entity.getTask().getUser().getAvatar());
+		dto.setServiceType(entity.getServiceType().getName());
+		dto.setSchoolName(entity.getTask().getSchool().getName());
+		dto.setEducationLevel(entity.getTask().getSchool().getEducationalLevel().getName());
+		dto.setAddress(entity.getTask().getSchool().getAddress());
+		return dto;
+	}
 }

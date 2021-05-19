@@ -7,6 +7,7 @@ import com.app.demo.dtos.Principle;
 import com.app.demo.dtos.SchoolDTO;
 import com.app.demo.dtos.SchoolStatusRequest;
 import com.app.demo.dtos.SchoolTimelineItem;
+import com.app.demo.dtos.SuggestionSalesman;
 import com.app.demo.models.SchoolType;
 
 public interface ISchoolService {
@@ -16,9 +17,10 @@ public interface ISchoolService {
 	 void delete(String id);
 	 SchoolDTO getOne(String id);
 	 List<SchoolTimelineItem> getTimeline(String schoolId);
-	 int saveAll(List<SchoolDTO> dtos);
+	 String saveAll(List<SchoolDTO> dtos);
 	 void updateStatus(String id, SchoolStatusRequest request);
 	 void updatePrinciple(String id,Principle request);
 	 Paging<SchoolDTO> getSchoolForTarget(String district, String status, String type, String level,
 				String schoolYear,int page, int limit, String column, String direction);
+	 List<SuggestionSalesman> getSuggestion(List<String> schoolId);
 }

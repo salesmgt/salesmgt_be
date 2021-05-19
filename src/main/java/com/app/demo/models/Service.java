@@ -28,13 +28,14 @@ public class Service extends Auditable<String> {
 	private int id;
 	private Date startDate;
 	private Date approveDate;
+	private Date submitDate;
 	private String status; // approved-pending-rejected
 	private String rejectedReason;
 	private Date endDate; //deadline
 	private boolean isExpired;
 	private int classNumber;
 	private String note;
-
+	private double pricePerSlot;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="task_id")
 	private Task task;	

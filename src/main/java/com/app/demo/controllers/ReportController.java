@@ -57,7 +57,7 @@ public class ReportController {
 	
 	@GetMapping
 	public Paging<ReportDTO> getListByFilter(
-			@RequestParam(required = false,defaultValue = "0") int targetId,
+			@RequestParam(required = false,defaultValue = "0") int taskId,
 			@RequestParam(required = false) String key,
 			@RequestParam(required = false) String district,
 			@RequestParam(required = false) String purpose,
@@ -76,7 +76,7 @@ public class ReportController {
 			convertedFromDate = sdf.parse(fromDate);
 			convertedToDate = sdf.parse(toDate);
 		}
-		return service.getReportByFilter(targetId,key, district, purpose, fullName, schoolYear, convertedFromDate, convertedToDate, page, limit, column, direction);	
+		return service.getReportByFilter(taskId,key, district, purpose, fullName, schoolYear, convertedFromDate, convertedToDate, page, limit, column, direction);	
 	}
 	@GetMapping("/{reportId}")
 	public ReportDTO getOne(@PathVariable int reportId) {

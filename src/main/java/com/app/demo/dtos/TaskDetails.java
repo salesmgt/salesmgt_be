@@ -1,6 +1,7 @@
 package com.app.demo.dtos;
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,13 +12,14 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-public class TargetDTO {
+public class TaskDetails {
 	private int id;
 	private String purpose;
 	private String schoolName;
 	private String fullName;
 	private String avatar;
 	private String reprName;
+	private Date endDate;
 	private boolean reprIsMale;
 	private String username;
 	private String district;
@@ -31,12 +33,10 @@ public class TargetDTO {
 	private String schoolType;
 	private String schoolAddress;
 	private String note;
-	private String noteBy;
 	private Date assignDate;
-	private Date endDate;
+	private String noteBy;
+	private String result;
 	private String schoolId;
-	
-	public String toString() {
-		return "[" + noteBy + "] " +note;
-	}
+	private List<ServiceDTO> services;
+
 }

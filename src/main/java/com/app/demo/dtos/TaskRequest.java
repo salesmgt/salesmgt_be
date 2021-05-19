@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class TargetRequest {
+public class TaskRequest {
 	private int id;
 	private String schoolYear;
 	private String note;

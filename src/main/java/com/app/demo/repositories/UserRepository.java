@@ -1,5 +1,7 @@
 package com.app.demo.repositories;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,10 +25,7 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 	@Modifying
 	@Query(value= "update user u set u.user_phone = :value where u.username = :username", nativeQuery = true)
 	void updatePhone(String username,  String value);
-	@Transactional
-	@Modifying
-	@Query(value= "update user u set u.address = :value, u.longitude = :longitude, u.latitude =:latitude where u.username = :username", nativeQuery = true)
-	void updateAddress(String username,  String value,double longitude,double latitude);
+	
 	@Transactional
 	@Modifying
 	@Query(value= "update user u set u.user_avatar = :value where u.username = :username", nativeQuery = true)
@@ -34,6 +33,9 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 	
 	@Query(value = "SELECT u FROM user u WHERE u.password_hash = :password and u.username = :username", 
 			  nativeQuery = true)
-	User findUserByHashPasswordAndUsername(
-			  @Param("password") String password, @Param("username") String username);
+	User findUserByHashPasswordAndUsername(@Param("password") String password, @Param("username") String username);
+	
+	@Query(value ="SELECT * FROM user u INNER JOIN role r on u.role_id = r.role_id WHERE u.address LIKE %:keyword% and r.name= :role and u.is_active = :is_active",
+			nativeQuery = true)
+	List<User> findByAddressContains(@Param("keyword")String keyword, @Param("role")String role,@Param("is_active")boolean active);
 	}

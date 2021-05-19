@@ -12,6 +12,7 @@ import com.app.demo.dtos.ErrorMessage;
 import org.springframework.security.authentication.BadCredentialsException;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.text.ParseException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.hibernate.exception.ConstraintViolationException;
@@ -27,7 +28,7 @@ public class ExceptionHandlerController {
 	        return new ErrorMessage(403, ex.getMessage());
 	    }
 	    */
-	 @ExceptionHandler(RuntimeException.class)
+	 /*@ExceptionHandler(RuntimeException.class)
 	    @ResponseStatus(value = HttpStatus.FORBIDDEN)
 	    public ErrorMessage runTime(RuntimeException ex) {
 		
@@ -49,7 +50,7 @@ public class ExceptionHandlerController {
 	    public ErrorMessage catchSQLException(SQLIntegrityConstraintViolationException ex) {
 		 String cmt = ex.getMessage();
 		 return 
-	        	 new ErrorMessage(409, "Error at "+cmt/*.split("'")[1]*/);
+	        	 new ErrorMessage(409, "Error at "+cmt);
 	    }
 	 
 	 @ExceptionHandler(IllegalStateException.class)   
@@ -71,7 +72,7 @@ public class ExceptionHandlerController {
 	    public ErrorMessage catchValidate(Exception ex,  WebRequest request) {
 	        return new ErrorMessage(400, "Giá trị thuộc tính sai định dạng");
 	    }
-	   /*@ExceptionHandler(ParseException.class)   
+	   @ExceptionHandler(ParseException.class)   
 	 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	    public ErrorMessage catchParse(Exception ex,  WebRequest request) {
 	        return new ErrorMessage(400, "Giá trị thuộc tính sai định dạng");

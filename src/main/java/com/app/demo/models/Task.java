@@ -36,8 +36,6 @@ public class Task extends Auditable<String> {
 	@Column(length = 10)
 	private String schoolYear;
 	
-	private String status;
-	
 	private boolean isActive;
 	private Date assignDate;
 	private Date endDate;
@@ -50,7 +48,7 @@ public class Task extends Auditable<String> {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="school_id")
 	private School school;
-	
+	private String result;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="user_id")
 	private User user;

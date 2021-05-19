@@ -19,23 +19,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.app.demo.dtos.NotePurposeRequest;
 import com.app.demo.dtos.Paging;
-import com.app.demo.dtos.TargetDTO;
-import com.app.demo.dtos.TargetDetails;
-import com.app.demo.dtos.TargetTimelineItem;
+import com.app.demo.dtos.TaskDTO;
+import com.app.demo.dtos.TaskDetails;
+import com.app.demo.dtos.TaskTimelineItem;
 import com.app.demo.dtos.TargetUpdateRequest;
 import com.app.demo.models.SchoolType;
 import com.app.demo.services.ITaskSchoolService;
 
 @CrossOrigin
 @RestController
-@RequestMapping(path = "/targets")
+@RequestMapping(path = "/tasks")
 public class TaskController {
 	
 	@Autowired
 	ITaskSchoolService service;
 	
 	@GetMapping
-	public Paging<TargetDTO> getTargetByFilter(@RequestParam(required = false) String key,
+	public Paging<TaskDTO> getTargetByFilter(@RequestParam(required = false) String key,
 			@RequestParam(required = false) String fullName,
 			@RequestParam(required = false) String username,
 			@RequestParam(required = false) String district,
@@ -49,7 +49,7 @@ public class TaskController {
 			@RequestParam(defaultValue = "10") int limit, 
 			@RequestParam(defaultValue = "id") String column,
 			@RequestParam(defaultValue = "DESC") String direction){
-		Paging<TargetDTO> targets = service.getTargetByFilter(isAssigned,status,username,key,purpose,SchoolType.valueOfLabel(type),level,fullName,district, schoolYear, 
+		Paging<TaskDTO> targets = service.getTargetByFilter(isAssigned,status,username,key,purpose,SchoolType.valueOfLabel(type),level,fullName,district, schoolYear, 
 				page, limit, column, direction);
 		return targets;	
 	}
@@ -63,9 +63,9 @@ public class TaskController {
 		service.unassign(targetId);
 		return "Unassigned";
 	}
-	@PutMapping("/{targetId}")
-	public String update(@PathVariable int targetId, @RequestBody TargetUpdateRequest request) {
-		service.updateTarget(targetId, request);
+	@PutMapping("/{taskId}")
+	public String update(@PathVariable int taskId, @RequestBody TargetUpdateRequest request) {
+		service.updateTarget(taskId, request);
 		return "Inserted";
 	}
 	@GetMapping("/school-years")
@@ -73,31 +73,31 @@ public class TaskController {
 		return service.getSchoolYearBySchoolId(id);
 	}
 	@PutMapping("/mutiple-assign")
-	public String assignMutiple(@RequestBody @Valid List<TargetDTO> request, BindingResult bindingResult) {
+	public String assignMutiple(@RequestBody @Valid List<TaskDTO> request, BindingResult bindingResult) {
 		service.assignMutiple(request);
 		return "Assigned";
 	}
-	@DeleteMapping("/{targetId}")
-	public String delete(@PathVariable int targetId) {
-				return service.delete(targetId);
+	@DeleteMapping("/{taskId}")
+	public String delete(@PathVariable int taskId) {
+				return service.delete(taskId);
 		
 	}
-	@GetMapping("/{targetId}")
-	public TargetDetails getOne(@PathVariable int targetId) {
-		return service.getOne(targetId);
+	@GetMapping("/{taskId}")
+	public TaskDetails getOne(@PathVariable int taskId) {
+		return service.getOne(taskId);
 	}
-	@GetMapping("/timeline/{targetId}")
-	public List<TargetTimelineItem> getTimeline(@PathVariable int targetId){
-		return service.getTimeline(targetId);
+	@GetMapping("/timeline/{taskId}")
+	public List<TaskTimelineItem> getTimeline(@PathVariable int taskId){
+		return service.getTimeline(taskId);
 	}
 	@PostMapping
-	public String createTarget(@RequestBody List<TargetDTO> request) {
+	public String createTarget(@RequestBody List<TaskDTO> request) {
 		int result = service.insert(request);
 		return "Inserting "+result;
 	}
-	@PatchMapping("/{targetId}")
-	public String updatePurposeNote(@PathVariable int targetId,@RequestBody NotePurposeRequest request ) {
-		service.updatePurposeNote(targetId, request);
+	@PatchMapping("/{taskId}")
+	public String updatePurposeNote(@PathVariable int taskId,@RequestBody NotePurposeRequest request ) {
+		service.updatePurposeNote(taskId, request);
 		return "Updated";
 	}
 }

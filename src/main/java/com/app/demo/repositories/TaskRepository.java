@@ -29,6 +29,10 @@ public interface TaskRepository extends JpaRepository<Task, Integer>,JpaSpecific
 			+ "	 WHERE u.school_year = ?1 and p.name=?2", nativeQuery = true)
 	long countBySchoolYearAndPurpose(String year,String purpose);
 	
+	@Query(value= "SELECT COUNT(*) FROM task u"
+			+ "	 WHERE u.school_year = ?1 and u.user_id=?2", nativeQuery = true)
+	int countByUsernameAndSchoolYear(String year,String username);
+	
 	@Query(value= "select t.school_id from task t where t.school_year=?1", nativeQuery = true)
 	List<Integer> findSchoolIdByYear(String year);
 	

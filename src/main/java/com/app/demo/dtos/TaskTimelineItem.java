@@ -13,7 +13,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TargetTimelineItem implements Comparable<TargetTimelineItem> {
+public class TaskTimelineItem implements Comparable<TaskTimelineItem> {
 	private int id;
 	private String type;
 	private Date date;
@@ -25,8 +25,9 @@ public class TargetTimelineItem implements Comparable<TargetTimelineItem> {
 	private Date startDate;
 	private Date endDate;
 	private int classNumber;
+	private Date approvedDate;
 	@Override
-	public int compareTo(TargetTimelineItem o) {
+	public int compareTo(TaskTimelineItem o) {
 		// TODO Auto-generated method stub
 		return this.getDate().compareTo(o.getDate());
 	}

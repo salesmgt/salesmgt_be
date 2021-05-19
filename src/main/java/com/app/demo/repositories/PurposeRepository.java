@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.app.demo.models.Purpose;
 
 @Repository
-public interface TargetPurposeRepository extends JpaRepository<Purpose, String> {
+public interface PurposeRepository extends JpaRepository<Purpose, String> {
 	Purpose findByName(String name);
 }

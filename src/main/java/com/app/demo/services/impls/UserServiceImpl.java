@@ -64,6 +64,8 @@ public class UserServiceImpl implements IUserService {
 		  entity.setMale(dto.isMale());
 		  entity.setPhone(dto.getPhone());
 		  entity.setBirthDate(dto.getBirthDate());
+		  entity.setLatitude(dto.getLatitude());
+		  entity.setLongitude(dto.getLongitude());
 		  repo.save(entity);
 	  }else 
 		  throw new SQLIntegrityConstraintViolationException("cant found this user");
@@ -163,7 +165,12 @@ public class UserServiceImpl implements IUserService {
 		User entity = repo.findByUsername(username);
 		if(!ObjectUtils.isEmpty(entity)) {
 			switch (attribute) {
-			case "address":repo.updateAddress(username, value,longitude,latitude);
+			case "address":
+			User user = repo.getOne(username);
+			user.setAddress(value);
+			user.setLatitude(latitude);
+			user.setLongitude(longitude);
+			repo.save(user);
 			break;
 			case "phone":repo.updatePhone(username, value);
 			break;
@@ -244,7 +251,6 @@ public class UserServiceImpl implements IUserService {
 		String generate = generatePassword();
 		String encode = bcrypt.encode(generate);
 		user.setPrivateToken(encode);
-		System.out.println(user);
 		email.sendToken(user.getEmail(),user.getFullName(),generate);
 		repo.save(user);
 		

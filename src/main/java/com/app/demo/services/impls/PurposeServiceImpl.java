@@ -7,12 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.demo.models.Purpose;
-import com.app.demo.repositories.TargetPurposeRepository;
+import com.app.demo.repositories.PurposeRepository;
 import com.app.demo.services.IPurposeService;
 @Service
 public class PurposeServiceImpl implements IPurposeService {
 	@Autowired
-	private TargetPurposeRepository repo;
+	private PurposeRepository repo;
 	@Override
 	public List<String> getPurposes(){
 		List<Purpose> entities = repo.findAll();
