@@ -60,24 +60,16 @@ public class PasswordGenerate {
 //	System.out.println(goc);
 //	System.out.println(2*Math.PI*6371*goc/360);
 	
-		String year = String.valueOf(Year.now().getValue());
-		System.out.println(year);
-		Date today = new Date();
-		Calendar cal = Calendar.getInstance();
-		int month = cal.get(Calendar.MONTH)+1;
-		System.out.println(getCurrentYear());
-	
-	}
-	private static String getCurrentYear() {
-		int year = Year.now().getValue();
-		Calendar cal = Calendar.getInstance();
-		int month = cal.get(Calendar.MONTH)+1;
-		String yearStr;
-		if(month>4)
-			 yearStr = String.valueOf(year) +"-"+ String.valueOf(year+1);
-		else
-			yearStr = String.valueOf(year-1) +"-"+ String.valueOf(year);
-		return yearStr;
+		List<Toado> list = new ArrayList<>();
+		list.add(new Toado(10.807950,106.664690));
+		list.add(new Toado(21.207480,105.779170));
+		for (Toado toado : list) {
+			if(toado.getLatitude() == 21.207480)
+				toado.setLatitude(0);
+		}
+		for (Toado toado : list) {
+			System.out.println(toado.getLatitude());
+		}
 	}
 }
 @Getter

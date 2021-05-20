@@ -20,7 +20,7 @@ public interface ISchoolService {
 	 String saveAll(List<SchoolDTO> dtos);
 	 void updateStatus(String id, SchoolStatusRequest request);
 	 void updatePrinciple(String id,Principle request);
-	 Paging<SchoolDTO> getSchoolForTarget(String district, String status, String type, String level,
+	 Paging<SchoolDTO> getSchoolForTarget(String key,String district, String status, String type, String level,
 				String schoolYear,int page, int limit, String column, String direction);
 	 List<SuggestionSalesman> getSuggestion(List<String> schoolId);
 }

@@ -34,6 +34,8 @@ public class Service extends Auditable<String> {
 	private Date endDate; //deadline
 	private boolean isExpired;
 	private int classNumber;
+	private int studentNumber;
+	private int slotNumber;
 	private String note;
 	private double pricePerSlot;
 	@ManyToOne(fetch = FetchType.LAZY)

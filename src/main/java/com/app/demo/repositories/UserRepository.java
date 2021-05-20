@@ -38,4 +38,8 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 	@Query(value ="SELECT * FROM user u INNER JOIN role r on u.role_id = r.role_id WHERE u.address LIKE %:keyword% and r.name= :role and u.is_active = :is_active",
 			nativeQuery = true)
 	List<User> findByAddressContains(@Param("keyword")String keyword, @Param("role")String role,@Param("is_active")boolean active);
+	
+	@Query(value ="SELECT * FROM user u INNER JOIN role r on u.role_id = r.role_id WHERE r.name= :role and u.is_active = :is_active",
+			nativeQuery = true)
+	List<User> findAllSaleman(@Param("role")String role,@Param("is_active")boolean active);
 	}

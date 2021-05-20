@@ -6,6 +6,7 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -31,17 +32,20 @@ import com.app.demo.dtos.SchoolTimelineItem;
 import com.app.demo.dtos.SuggestionSalesman;
 import com.app.demo.mappers.Mapper;
 import com.app.demo.models.Level;
+import com.app.demo.models.Role;
 import com.app.demo.models.SchoolStatus;
 import com.app.demo.models.SchoolStatus_;
 import com.app.demo.models.School;
 import com.app.demo.models.District;
 import com.app.demo.models.District_;
 import com.app.demo.models.EducationalLevel;
+import com.app.demo.models.EducationalLevel_;
 import com.app.demo.models.SchoolType;
 import com.app.demo.models.School_;
 import com.app.demo.models.Task;
 import com.app.demo.models.Task_;
 import com.app.demo.models.User;
+import com.app.demo.models.User_;
 import com.app.demo.repositories.DistrictRepository;
 import com.app.demo.repositories.EducationalLevelRepository;
 import com.app.demo.repositories.SchoolRepository;
@@ -51,6 +55,7 @@ import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.ISchoolService;
 import com.app.demo.utils.DistanceCalculateUtils;
 import com.app.demo.utils.VNCharacterUtils;
+import com.sun.mail.imap.protocol.Item;
 
 @Service
 public class SchoolServiceImpl implements ISchoolService {
@@ -273,12 +278,13 @@ public class SchoolServiceImpl implements ISchoolService {
 	}
 
 	@Override
-	public Paging<SchoolDTO> getSchoolForTarget(String district, String status, String type, String level,
+	public Paging<SchoolDTO> getSchoolForTarget(String key,String district, String status, String type, String level,
 			String schoolYear, int page, int limit, String column, String direction) {
 		Page<School> pageEntities = (Page<School>) repo.findAll((Specification<School>) (root, query, builder) -> {
 			Join<School, Task> target_school = root.join(School_.TASKS, JoinType.LEFT);
 			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
 			Join<School, District> school = root.join(School_.DISTRICT);
+			Join<School, EducationalLevel> school_level = root.join(School_.EDUCATIONAL_LEVEL);
 			Predicate p = builder.conjunction();
 			ArrayList<School> list = new ArrayList<School>();
 			for (Task element : targetRepo.findBySchoolYear(schoolYear)) {
@@ -287,15 +293,21 @@ public class SchoolServiceImpl implements ISchoolService {
 			Predicate listNot = builder.or(target_school.get(Task_.SCHOOL).in(list).not());
 			Predicate year = builder.isNull(target_school.get(Task_.SCHOOL_YEAR));
 			p = builder.or(listNot, year);
+			if (!ObjectUtils.isEmpty(key)) {
+				Predicate name = builder.like(root.get(School_.NAME), "%" + key + "%");
+				Predicate address = builder.like(root.get(School_.ADDRESS), "%" + key + "%");
+				Predicate reprName = builder.like(root.get(School_.REPR_NAME), "%" + key + "%");
+				p = builder.and(p, builder.or( name, address, reprName));
+			}
 			if (!ObjectUtils.isEmpty(district))
 				p = builder.and(p, builder.equal(school.get(District_.NAME), district));
 			if (!ObjectUtils.isEmpty(status))
 				p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME), status));
 			if (!ObjectUtils.isEmpty(level))
-				p = builder.and(p, builder.equal(root.get(School_.EDUCATIONAL_LEVEL), Level.valueOfLabel(level)));
+				p = builder.and(p, builder.like(school_level.get(EducationalLevel_.NAME), "%" + level + "%"));
 			if (!ObjectUtils.isEmpty(type))
 				p = builder.and(p, builder.equal(root.get(School_.TYPE), SchoolType.valueOfLabel(type)));
-
+			p = builder.and(p, builder.isTrue(root.get(Task_.IS_ACTIVE)));
 			query.distinct(true);
 			return p;
 		}, paging(page, limit, column, direction));
@@ -371,76 +383,14 @@ public class SchoolServiceImpl implements ISchoolService {
 
 	@Override
 	public List<SuggestionSalesman> getSuggestion(List<String> schoolIds) {
-		List<SuggestionSalesman> salesmen = new ArrayList<SuggestionSalesman>();
+		List<SuggestionSalesman> salesmen = null;
+
 		if (schoolIds.size() == 1) {
 			School school = repo.getOne(schoolIds.get(0));
-			String address = school.getAddress();
-			String ward = address.substring(address.indexOf(", ") + 2);
-			List<User> list = userRepo.findByAddressContains(ward, "SALESMAN", true);
-
-			if (!ObjectUtils.isEmpty(list)) {
-				for (User user : list) {
-					SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
-							user.getAddress(), user.getFullName(), 0, "Nearly Ward", 0, 5);
-					saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(), school.getLongitude(),
-							user.getLatitude(), user.getLongitude()));
-					int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
-					saleman.setPoint(setPoint(saleman.getPoint(), number));
-					saleman.setNumberOfTask(number);
-					salesmen.add(saleman);
-				}
-			}
-			if (salesmen.size() < 5) {
-				String district = ward.substring(ward.indexOf(", ") + 2);
-				list = userRepo.findByAddressContains(district, "SALESMAN", true);
-				if (!ObjectUtils.isEmpty(list)) {
-					for (User user : list) {
-						if (salesmen.size() > 5)
-							break;
-						boolean dup = false;
-						for (SuggestionSalesman user2 : salesmen) {
-							if (user2.getUsername().equalsIgnoreCase(user.getUsername()))
-								dup = true;
-						}
-						if (dup == false) {
-							SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
-									user.getAddress(), user.getFullName(), 0, "Nearly District", 0, 3);
-							saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(),
-									school.getLongitude(), user.getLatitude(), user.getLongitude()));
-							int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
-							saleman.setPoint(setPoint(saleman.getPoint(), number));
-							saleman.setNumberOfTask(number);
-							salesmen.add(saleman);
-						}
-					}
-				}
-			}
-			if (salesmen.size() < 5) {
-				list = userRepo.findByAddressContains("Thành phố Hồ Chí Minh", "SALESMAN", true);
-				if (!ObjectUtils.isEmpty(list)) {
-					for (User user : list) {
-						boolean dup2 = false;
-						for (SuggestionSalesman user2 : salesmen) {
-							if (user2.getUsername().equalsIgnoreCase(user.getUsername()))
-								dup2 = true;
-						}
-						if (!dup2) {
-							SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
-									user.getAddress(), user.getFullName(), 0, "Nearly", 0, 2);
-							saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(),
-									school.getLongitude(), user.getLatitude(), user.getLongitude()));
-							int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
-							saleman.setPoint(setPoint(saleman.getPoint(), number));
-							saleman.setNumberOfTask(number);
-							salesmen.add(saleman);
-						}
-
-					}
-				}
-			}
-			Collections.sort(salesmen);
-		}
-		return salesmen.subList(0, 5);
+			salesmen = getSuggestionOne(school, salesmen);
+		}	else
+			salesmen = suggestMutipleSchool(schoolIds);
+		return  salesmen.size()>=5 ? salesmen.subList(0, 5) : salesmen ;
 	}
 
 	private double setPoint(double point, int number) {
@@ -452,8 +402,8 @@ public class SchoolServiceImpl implements ISchoolService {
 		else if (number <= 49)
 			finalPoint = point + .5;
 		return finalPoint;
-
 	}
+
 	private String getCurrentYear() {
 		int year = Year.now().getValue();
 		Calendar cal = Calendar.getInstance();
@@ -464,5 +414,241 @@ public class SchoolServiceImpl implements ISchoolService {
 		else
 			yearStr = String.valueOf(year - 1) + "-" + String.valueOf(year);
 		return yearStr;
+	}
+
+	private List<SuggestionSalesman> getExpSalesman(School school) {
+		List<Task> tasks = targetRepo.findAll((Specification<Task>) (root, query, builder) -> {
+			Join<Task, User> task_user = root.join(Task_.USER);
+			Join<Task, School> task_school = root.join(Task_.SCHOOL);
+			Predicate p = builder.conjunction();
+			p = builder.and(p, builder.isTrue(task_user.get(User_.ACTIVE)));
+			p = builder.and(p, builder.equal(task_school.get(School_.SCHOOL_ID), school.getSchoolId()));
+			query.distinct(true);
+			return p;
+		});
+		List<SuggestionSalesman> list = new ArrayList<>();
+		for (Task task : tasks) {
+			boolean dup = false;
+			for (SuggestionSalesman item : list) {
+				if (item.getUsername().equalsIgnoreCase(task.getUser().getUsername())) {
+					item.setContent(item.getContent() + " + " + task.getSchoolYear());
+					dup = true;
+					break;
+				}
+			}
+			if (!dup) {
+				User user = task.getUser();
+				SuggestionSalesman saleman = new SuggestionSalesman(task.getUser().getUsername(),
+						task.getUser().getAvatar(), task.getUser().getAddress(), task.getUser().getFullName(), 0,
+						"Experience at "+task.getSchool().getName()+" "+task.getSchoolYear(), 0, 4);
+				saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(), school.getLongitude(),
+						user.getLatitude(), user.getLongitude()));
+				int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
+				saleman.setPoint(setPoint(saleman.getPoint(), number));
+				saleman.setNumberOfTask(number);
+				list.add(saleman);
+			}
+		}
+		return list;
+	}
+	
+	private List<SuggestionSalesman> getSuggestionOne(School school,List<SuggestionSalesman> salesmen){
+	List<SuggestionSalesman> exp = getExpSalesman(school);
+	if (!ObjectUtils.isEmpty(exp))
+		salesmen = exp;
+	else
+		salesmen = new ArrayList<SuggestionSalesman>();
+	String address = school.getAddress();
+	String ward = address.substring(address.indexOf(", ") + 2);
+	List<User> list = userRepo.findByAddressContains(ward, "SALESMAN", true);
+	if (!ObjectUtils.isEmpty(list)) {
+		for (User user : list) {
+			boolean dup = false;
+			for (SuggestionSalesman user2 : salesmen) {
+				if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
+					user2.setContent(user2.getContent() + ", " + "Nearly Ward");
+					user2.setPoint(user2.getPoint() + 3);
+					dup = true;
+					break;
+				}
+			}
+			if (!dup) {
+				SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
+						user.getAddress(), user.getFullName(), 0, "Nearly Ward", 0, 3);
+				saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(),
+						school.getLongitude(), user.getLatitude(), user.getLongitude()));
+				int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
+				saleman.setPoint(setPoint(saleman.getPoint(), number));
+				saleman.setNumberOfTask(number);
+				salesmen.add(saleman);
+			}
+		}
+	}
+	if (salesmen.size() < 5) {
+		String district = ward.substring(ward.indexOf(", ") + 2);
+		list = userRepo.findByAddressContains(district, "SALESMAN", true);
+		if (!ObjectUtils.isEmpty(list)) {
+			for (User user : list) {
+				if (salesmen.size() > 5)
+					break;
+				boolean dup = false;
+				for (SuggestionSalesman user2 : salesmen) {
+					if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
+						if (!user2.getContent().contains("Nearly Ward")) {
+							user2.setContent(user2.getContent() + ", " + "Nearly District");
+							user2.setPoint(user2.getPoint() + 2);
+						}
+						dup = true;
+						break;
+					}
+				}
+				if (dup == false) {
+					SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
+							user.getAddress(), user.getFullName(), 0, "Nearly District", 0, 2);
+					saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(),
+							school.getLongitude(), user.getLatitude(), user.getLongitude()));
+					int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
+					saleman.setPoint(setPoint(saleman.getPoint(), number));
+					saleman.setNumberOfTask(number);
+					salesmen.add(saleman);
+				}
+			}
+		}
+	}
+	if (salesmen.size() < 5) {
+		list = userRepo.findAllSaleman("SALESMAN", true);
+		if (!ObjectUtils.isEmpty(list)) {
+			List<SuggestionSalesman> temp = new ArrayList<>();
+			for (User user : list) {
+				boolean dup2 = false;
+				for (SuggestionSalesman user2 : salesmen) {
+					if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
+						if (!user2.getContent().contains("Nearly District")
+								&& !user2.getContent().contains("Nearly Ward")) {
+							user2.setContent(user2.getContent() + ", " + "Nearly");
+							user2.setPoint(user2.getPoint() + 1.5);
+						}
+						dup2 = true;
+						break;
+					}
+				}
+				if (!dup2) {
+					SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
+							user.getAddress(), user.getFullName(), 0, "Nearly", 0, 1.5);
+					saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(),
+							school.getLongitude(), user.getLatitude(), user.getLongitude()));
+					int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
+					saleman.setPoint(setPoint(saleman.getPoint(), number));
+					saleman.setNumberOfTask(number);
+					temp.add(saleman);
+				}
+			}
+			if(temp.size()>0) {
+				
+				temp.sort(Comparator.comparing(SuggestionSalesman::getDistance));
+				temp.forEach(item -> System.out.println(item.getDistance()));
+				salesmen.addAll(temp);
+			}
+		}
+	}
+	 Collections.sort(salesmen);
+	 return salesmen;
+}
+	private List<SuggestionSalesman> suggestMutipleSchool(List<String> ids) {
+		List<School> list = repo.findAllById(ids);
+		List<SuggestionSalesman> exps = new ArrayList<>();
+		List<SuggestionSalesman> temp = null;
+		boolean difference = false;
+		String district = list.get(0).getDistrict().getName();
+		double lat = list.stream().mapToDouble(item ->item.getLatitude()).sum()/ids.size();
+		double lon = list.stream().mapToDouble(item ->item.getLongitude()).sum()/ids.size();
+		for (School school : list) {
+			school.setLatitude(lat);
+			school.setLongitude(lon);
+			temp = getExpSalesman(school);
+			for (SuggestionSalesman suggestionSalesman : temp) {
+				boolean dup =false;
+				for (SuggestionSalesman salesman : exps) {
+					if(salesman.getUsername().equalsIgnoreCase(suggestionSalesman.getUsername())) {
+						salesman.setContent(salesman.getContent()+", " +suggestionSalesman.getContent());
+						salesman.setPoint(salesman.getPoint()+4);
+						dup = true;
+					}	
+				}
+				if(!dup) {
+					exps.add(suggestionSalesman);
+				}
+			}
+			
+			if(!school.getDistrict().getName().equalsIgnoreCase(district)) {
+				difference = true;
+			}	
+			
+		}
+		if(difference)
+			return exps;
+		else {
+		List<User> users = userRepo.findByAddressContains(district, "SALESMAN", true);
+		if (!ObjectUtils.isEmpty(list)) {
+			for (User user : users) {
+				if (exps.size() > 5)
+					break;
+				boolean dup = false;
+				for (SuggestionSalesman user2 : exps) {
+					if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
+							user2.setContent(user2.getContent() + ", " + "Nearly District");
+							user2.setPoint(user2.getPoint() + 2);
+							dup = true;
+					}
+				}
+				if (dup == false) {
+					SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
+							user.getAddress(), user.getFullName(), 0, "Nearly District", 0, 2);
+					saleman.setDistance(DistanceCalculateUtils.calculate(lat,
+							lon, user.getLatitude(), user.getLongitude()));
+					int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
+					saleman.setPoint(setPoint(saleman.getPoint(), number));
+					saleman.setNumberOfTask(number);
+					exps.add(saleman);
+				}
+			}
+		}
+		if (exps.size() < 5) {
+			users = userRepo.findAllSaleman("SALESMAN", true);
+			if (!ObjectUtils.isEmpty(list)) {
+				List<SuggestionSalesman> tempp = new ArrayList<>();
+				for (User user : users) {
+					boolean dup2 = false;
+					for (SuggestionSalesman user2 : exps) {
+						if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
+							if (!user2.getContent().contains("Nearly District")
+									&& !user2.getContent().contains("Nearly Ward")) {
+								user2.setContent(user2.getContent() + ", " + "Nearly");
+								user2.setPoint(user2.getPoint() + 1.5);
+							}
+							dup2 = true;
+						}
+					}
+					if (!dup2) {
+						SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
+								user.getAddress(), user.getFullName(), 0, "Nearly", 0, 1.5);
+						saleman.setDistance(DistanceCalculateUtils.calculate(lat,
+								lon, user.getLatitude(), user.getLongitude()));
+						int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
+						saleman.setPoint(setPoint(saleman.getPoint(), number));
+						saleman.setNumberOfTask(number);
+						tempp.add(saleman);
+					}
+				}
+				if(tempp.size()>0) {
+					
+					tempp.sort(Comparator.comparing(SuggestionSalesman::getDistance));
+					tempp.forEach(item -> System.out.println(item.getDistance()));
+					exps.addAll(tempp);
+				}
+			}
+		}
+		}
+		return exps;
 	}
 }

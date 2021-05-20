@@ -83,14 +83,15 @@ public class SchoolController {
 	
 	@GetMapping("/targets-creating")
 	public Paging<SchoolDTO> getSchoolForTarget(
+			@RequestParam(required = false) String key,
 			@RequestParam(required = false) String district,
 			@RequestParam(required = false) String status,
-			@RequestParam(required = false) Boolean active, @RequestParam(required = false) String type,
+			@RequestParam(required = false) String type,
 			@RequestParam(required = false) String level,
-			@RequestParam(required = false) String key,@RequestParam(required = false) String schoolYear, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(required = false) String schoolYear, @RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "schoolId") String column,
 			@RequestParam(defaultValue = "ASC") String direction) {
-		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolForTarget(district, status, type, level,schoolYear, page, limit, column, direction);
+		Paging<SchoolDTO> schoolPage = iSchoolService.getSchoolForTarget(key,district, status, type, level,schoolYear, page, limit, column, direction);
 		return schoolPage;
 	}
 

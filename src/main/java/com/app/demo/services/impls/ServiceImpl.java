@@ -51,20 +51,25 @@ public class ServiceImpl implements IServiceService {
 	@Override
 	public void update(int id, ServiceDTO dto) {
 		try {
+			SimpleDateFormat sdff = new SimpleDateFormat("yyyy-MM-dd");
+			sdff.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 			com.app.demo.models.Service entity = repo.getOne(id);
+			entity.setPricePerSlot(dto.getPricePerSlot());
+			entity.setSlotNumber(dto.getSlotNumber());
+			entity.setStudentNumber(dto.getStudentNumber());
 			entity.setClassNumber(dto.getClassNumber());
 			sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
-			entity.setApproveDate(sdf.parse(dto.getApproveDate()));
-			entity.setStartDate(sdf.parse(dto.getStartDate().substring(0, 10)));
-			Date end = sdf.parse(dto.getEndDate().substring(0, 10));
+			entity.setStartDate(sdff.parse(dto.getStartDate().substring(0, 10)));
+			Date end = sdff.parse(dto.getEndDate().substring(0, 10));
 			entity.setEndDate(end);
+			entity.setNote(dto.getNote());
 			String strNowDate = sdf.format(new Date());
 			Date now = sdf.parse(strNowDate);
 			if (now.compareTo(end) > 0)
 				entity.setExpired(true);
 			else
 				entity.setExpired(false);
-			entity.setNote(dto.getNote());
+			entity.setSubmitDate(now);
 			entity.setServiceType(typeRepo.findByName(dto.getServiceType()));
 			entity.setId(id);
 			repo.save(entity);

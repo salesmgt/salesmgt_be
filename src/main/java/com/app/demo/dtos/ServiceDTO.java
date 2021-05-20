@@ -1,8 +1,5 @@
 package com.app.demo.dtos;
 
-
-import java.util.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +17,7 @@ public class ServiceDTO {
 	private String schoolName;
 	private String serviceType;
 	private String startDate;
+	private int studentNumber;
 	private String approveDate;
 	private String status; // approved-pending-rejected
 	private String rejectedReason;
@@ -28,6 +26,7 @@ public class ServiceDTO {
 	private int classNumber;
 	private double pricePerSlot;
 	private String note;
+	private int slotNumber;
 	private String educationLevel;
 	private String submitDate;
 	private String address;
