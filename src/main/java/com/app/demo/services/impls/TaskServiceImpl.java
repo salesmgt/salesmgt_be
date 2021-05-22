@@ -415,6 +415,7 @@ public class TaskServiceImpl implements ITaskSchoolService {
 		Task target = repo.getOne(targetId);
 		if(!ObjectUtils.isEmpty(target.getUser())) {
 			target.setUser(null);
+			target.setAssignDate(null);
 			repo.save(target);
 		}
 	}

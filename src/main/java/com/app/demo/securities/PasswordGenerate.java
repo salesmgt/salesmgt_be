@@ -2,8 +2,11 @@ package com.app.demo.securities;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -59,17 +62,22 @@ public class PasswordGenerate {
 //	double goc = Math.sin(khoangcach1/6371)*2;
 //	System.out.println(goc);
 //	System.out.println(2*Math.PI*6371*goc/360);
-	
-		List<Toado> list = new ArrayList<>();
-		list.add(new Toado(10.807950,106.664690));
-		list.add(new Toado(21.207480,105.779170));
-		for (Toado toado : list) {
-			if(toado.getLatitude() == 21.207480)
-				toado.setLatitude(0);
-		}
-		for (Toado toado : list) {
-			System.out.println(toado.getLatitude());
-		}
+		String strNowDate = "2021-05-18";
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar c = Calendar.getInstance();
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		c.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		c.setTime(sdf.parse(strNowDate));
+		int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+		System.out.println(dayOfWeek);
+		String strNowPreviousDate = null;
+		LocalDate date = LocalDate.parse(strNowDate);
+		if(dayOfWeek == 2)
+			strNowPreviousDate = date.minusDays(3).toString();
+		
+		else
+			strNowPreviousDate = date.minusDays(1).toString();
+		System.out.println(strNowPreviousDate);
 	}
 }
 @Getter

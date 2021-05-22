@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.demo.dtos.LocationCard;
+import com.app.demo.schedules.ServiceUpdateSchedule;
 import com.app.demo.services.ITaskSchoolService;
 
 @CrossOrigin

@@ -6,10 +6,12 @@ import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RecoverRequest;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.UserDTO;
+import com.app.demo.dtos.UserKPI;
 
 public interface IUserService {
 	void insert(UserDTO dto) throws SQLIntegrityConstraintViolationException;
 	void delete(String id);
+	UserKPI getKPI(String username);
 	void updatePassword(String username, RequestPasswordDTO dto) throws SQLIntegrityConstraintViolationException;
     void update(String username, UserDTO dto) throws SQLIntegrityConstraintViolationException;
 	UserDTO getOne(String username);

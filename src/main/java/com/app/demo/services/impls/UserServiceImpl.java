@@ -1,7 +1,9 @@
 package com.app.demo.services.impls;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.Year;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
@@ -22,6 +24,7 @@ import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RecoverRequest;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.UserDTO;
+import com.app.demo.dtos.UserKPI;
 import com.app.demo.emails.EmailSenderService;
 import com.app.demo.mappers.Mapper;
 import com.app.demo.models.Role;
@@ -29,6 +32,7 @@ import com.app.demo.models.Role_;
 import com.app.demo.models.User;
 import com.app.demo.models.User_;
 import com.app.demo.repositories.RoleRepository;
+import com.app.demo.repositories.ServiceRepository;
 import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.IUserService;
 
@@ -39,6 +43,8 @@ public class UserServiceImpl implements IUserService {
 	private RoleRepository roleRepo;
 	@Autowired
 	private UserRepository repo;
+	@Autowired
+	private ServiceRepository serviceRepo;
 	@Autowired
 	private EmailSenderService email;
 	
@@ -244,7 +250,6 @@ public class UserServiceImpl implements IUserService {
 	    };
 	    countDownThread.start();
 	}
-	
 	public void generateToken(String username) throws Exception {
 		User user = repo.getOne(username);
 		BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
@@ -253,7 +258,23 @@ public class UserServiceImpl implements IUserService {
 		user.setPrivateToken(encode);
 		email.sendToken(user.getEmail(),user.getFullName(),generate);
 		repo.save(user);
-		
 		clearToken(username);
+	}
+	private String getCurrentYear() {
+		int year = Year.now().getValue();
+		Calendar cal = Calendar.getInstance();
+		int month = cal.get(Calendar.MONTH) + 1;
+		String yearStr;
+		if (month > 4)
+			yearStr = String.valueOf(year) + "-" + String.valueOf(year + 1);
+		else
+			yearStr = String.valueOf(year - 1) + "-" + String.valueOf(year);
+		return yearStr;
+	}
+	public UserKPI getKPI(String username){
+		List<com.app.demo.models.Service> list = serviceRepo.findByUsernameAndSchoolYear(username, getCurrentYear());
+		User u = repo.getOne(username);
+		UserKPI user = new UserKPI(username, u.getFullName(), u.getRole().getName(), list.size());
+		return user;
 	}
 }

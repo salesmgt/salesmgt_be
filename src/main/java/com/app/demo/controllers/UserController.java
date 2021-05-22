@@ -23,6 +23,9 @@ import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.RequestProfileDTO;
 import com.app.demo.dtos.UserDTO;
+import com.app.demo.dtos.UserKPI;
+import com.app.demo.repositories.ServiceRepository;
+import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.IUserService;
 
 @CrossOrigin
@@ -31,6 +34,7 @@ import com.app.demo.services.IUserService;
 public class UserController {
 	@Autowired
 	private IUserService service;
+	
 	
 	@PostMapping
 	public String insert(@RequestBody @Valid UserDTO dto, BindingResult bindingResult) throws SQLIntegrityConstraintViolationException {
@@ -83,7 +87,10 @@ public class UserController {
 				limit, column, direction,active,role,fullName);
 		return userPage;
 	}
-
+	@GetMapping("/kpi")
+	public UserKPI getKPIForUser(@RequestParam String username) {
+		return service.getKPI(username);
+	}
 	@PatchMapping("/{username}")
 	public String updateProfile(@PathVariable String username, @RequestBody RequestProfileDTO dto) {
 		service.updateProfile(username, dto.getAttribute(), dto.getLongitude(),dto.getLatitude(),dto.getValue());

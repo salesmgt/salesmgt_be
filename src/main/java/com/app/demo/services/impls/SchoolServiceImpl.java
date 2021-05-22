@@ -142,8 +142,7 @@ public class SchoolServiceImpl implements ISchoolService {
 						p = criteriaBuilder.or(phone, name, address, reprName, reprPhone);
 					}
 					if (!ObjectUtils.isEmpty(educationalLevel)) {
-						p = criteriaBuilder.and(p,
-								criteriaBuilder.like(edu.get(School_.EDUCATIONAL_LEVEL), "%" + educationalLevel + "%"));
+						p = criteriaBuilder.and(p,criteriaBuilder.like(edu.get(EducationalLevel_.NAME), "%" + educationalLevel + "%"));
 					}
 					if (!ObjectUtils.isEmpty(type)) {
 						p = criteriaBuilder.and(p, criteriaBuilder.equal(root.get(School_.TYPE), type));
@@ -432,6 +431,7 @@ public class SchoolServiceImpl implements ISchoolService {
 			for (SuggestionSalesman item : list) {
 				if (item.getUsername().equalsIgnoreCase(task.getUser().getUsername())) {
 					item.setContent(item.getContent() + " + " + task.getSchoolYear());
+					item.setPoint(item.getPoint()+1);
 					dup = true;
 					break;
 				}
@@ -466,7 +466,7 @@ public class SchoolServiceImpl implements ISchoolService {
 			boolean dup = false;
 			for (SuggestionSalesman user2 : salesmen) {
 				if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
-					user2.setContent(user2.getContent() + ", " + "Nearly Ward");
+					user2.setContent(user2.getContent() + ", " + "In Ward");
 					user2.setPoint(user2.getPoint() + 3);
 					dup = true;
 					break;
@@ -474,7 +474,7 @@ public class SchoolServiceImpl implements ISchoolService {
 			}
 			if (!dup) {
 				SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
-						user.getAddress(), user.getFullName(), 0, "Nearly Ward", 0, 3);
+						user.getAddress(), user.getFullName(), 0, "In Ward", 0, 3);
 				saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(),
 						school.getLongitude(), user.getLatitude(), user.getLongitude()));
 				int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
@@ -486,7 +486,7 @@ public class SchoolServiceImpl implements ISchoolService {
 	}
 	if (salesmen.size() < 5) {
 		String district = ward.substring(ward.indexOf(", ") + 2);
-		list = userRepo.findByAddressContains(district, "SALESMAN", true);
+		list = userRepo.findByAddressContains(district+",", "SALESMAN", true);
 		if (!ObjectUtils.isEmpty(list)) {
 			for (User user : list) {
 				if (salesmen.size() > 5)
@@ -494,8 +494,8 @@ public class SchoolServiceImpl implements ISchoolService {
 				boolean dup = false;
 				for (SuggestionSalesman user2 : salesmen) {
 					if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
-						if (!user2.getContent().contains("Nearly Ward")) {
-							user2.setContent(user2.getContent() + ", " + "Nearly District");
+						if (!user2.getContent().contains("In Ward")) {
+							user2.setContent(user2.getContent() + ", " + "In District");
 							user2.setPoint(user2.getPoint() + 2);
 						}
 						dup = true;
@@ -504,7 +504,7 @@ public class SchoolServiceImpl implements ISchoolService {
 				}
 				if (dup == false) {
 					SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
-							user.getAddress(), user.getFullName(), 0, "Nearly District", 0, 2);
+							user.getAddress(), user.getFullName(), 0, "In District", 0, 2);
 					saleman.setDistance(DistanceCalculateUtils.calculate(school.getLatitude(),
 							school.getLongitude(), user.getLatitude(), user.getLongitude()));
 					int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
@@ -523,8 +523,8 @@ public class SchoolServiceImpl implements ISchoolService {
 				boolean dup2 = false;
 				for (SuggestionSalesman user2 : salesmen) {
 					if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
-						if (!user2.getContent().contains("Nearly District")
-								&& !user2.getContent().contains("Nearly Ward")) {
+						if (!user2.getContent().contains("In District")
+								&& !user2.getContent().contains("In Ward")) {
 							user2.setContent(user2.getContent() + ", " + "Nearly");
 							user2.setPoint(user2.getPoint() + 1.5);
 						}
@@ -588,7 +588,7 @@ public class SchoolServiceImpl implements ISchoolService {
 		if(difference)
 			return exps;
 		else {
-		List<User> users = userRepo.findByAddressContains(district, "SALESMAN", true);
+		List<User> users = userRepo.findByAddressContains(district+",", "SALESMAN", true);
 		if (!ObjectUtils.isEmpty(list)) {
 			for (User user : users) {
 				if (exps.size() > 5)
@@ -596,14 +596,14 @@ public class SchoolServiceImpl implements ISchoolService {
 				boolean dup = false;
 				for (SuggestionSalesman user2 : exps) {
 					if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
-							user2.setContent(user2.getContent() + ", " + "Nearly District");
+							user2.setContent(user2.getContent() + ", " + "In District");
 							user2.setPoint(user2.getPoint() + 2);
 							dup = true;
 					}
 				}
 				if (dup == false) {
 					SuggestionSalesman saleman = new SuggestionSalesman(user.getUsername(), user.getAvatar(),
-							user.getAddress(), user.getFullName(), 0, "Nearly District", 0, 2);
+							user.getAddress(), user.getFullName(), 0, "In District", 0, 2);
 					saleman.setDistance(DistanceCalculateUtils.calculate(lat,
 							lon, user.getLatitude(), user.getLongitude()));
 					int number = targetRepo.countByUsernameAndSchoolYear(getCurrentYear(), user.getUsername());
@@ -621,8 +621,8 @@ public class SchoolServiceImpl implements ISchoolService {
 					boolean dup2 = false;
 					for (SuggestionSalesman user2 : exps) {
 						if (user2.getUsername().equalsIgnoreCase(user.getUsername())) {
-							if (!user2.getContent().contains("Nearly District")
-									&& !user2.getContent().contains("Nearly Ward")) {
+							if (!user2.getContent().contains("In District")
+									&& !user2.getContent().contains("In Ward")) {
 								user2.setContent(user2.getContent() + ", " + "Nearly");
 								user2.setPoint(user2.getPoint() + 1.5);
 							}
@@ -643,12 +643,12 @@ public class SchoolServiceImpl implements ISchoolService {
 				if(tempp.size()>0) {
 					
 					tempp.sort(Comparator.comparing(SuggestionSalesman::getDistance));
-					tempp.forEach(item -> System.out.println(item.getDistance()));
 					exps.addAll(tempp);
 				}
 			}
 		}
 		}
+		Collections.sort(exps);
 		return exps;
 	}
 }

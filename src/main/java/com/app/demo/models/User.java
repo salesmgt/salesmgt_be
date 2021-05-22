@@ -66,6 +66,9 @@ public class User extends Auditable<String> {
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Task> tasks;
 
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Kpi> kpis;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="role_id")
 	private Role role;

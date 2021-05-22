@@ -16,4 +16,14 @@ public interface ReportRepository extends JpaRepository<Report, Integer>, JpaSpe
 			  nativeQuery = true)
 	List<Report> findReportByDateAndTarget(
 			  @Param("date") String date, @Param("task_id") int id);
+	
+	@Query(value = "SELECT count(*) FROM report u join task t on u.task_id = t.id WHERE DATE(u.date) = :date and t.user_id = :user_id", 
+			  nativeQuery = true)
+	int countReportByDateAndUsername(
+			  @Param("date") String date, @Param("user_id") String user_id);
+	
+	@Query(value = "SELECT count(*) FROM report u join task t on u.task_id = t.id WHERE DATE(u.date) = :date and t.user_id = :user_id and u.is_success = :is_success", 
+			  nativeQuery = true)
+	int countReportByDateAndUsernameAndResult(
+			  @Param("date") String date, @Param("user_id") String user_id,@Param("is_success") boolean is_success);
 }

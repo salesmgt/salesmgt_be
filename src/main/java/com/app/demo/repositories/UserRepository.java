@@ -42,4 +42,8 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
 	@Query(value ="SELECT * FROM user u INNER JOIN role r on u.role_id = r.role_id WHERE r.name= :role and u.is_active = :is_active",
 			nativeQuery = true)
 	List<User> findAllSaleman(@Param("role")String role,@Param("is_active")boolean active);
+	
+	@Query(value ="SELECT DISTINCT u.username FROM user u INNER JOIN role r on u.role_id = r.role_id INNER JOIN task t on u.username = t.user_id WHERE r.name= :role and u.is_active = :is_active and t.school_year = :school_year",
+			nativeQuery = true)
+	List<String> findAllUsername(@Param("role")String role,@Param("is_active")boolean active,@Param("school_year")String school_year);
 	}
