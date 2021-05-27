@@ -272,9 +272,13 @@ public class UserServiceImpl implements IUserService {
 		return yearStr;
 	}
 	public UserKPI getKPI(String username){
-		List<com.app.demo.models.Service> list = serviceRepo.findByUsernameAndSchoolYear(username, getCurrentYear());
+		List<com.app.demo.models.Service> list = serviceRepo.findByUsernameAndSchoolYear(username, "2020-2021");
 		User u = repo.getOne(username);
-		UserKPI user = new UserKPI(username, u.getFullName(), u.getRole().getName(), list.size());
+		double rev =0;
+		if(!ObjectUtils.isEmpty(list)) {
+			 rev = list.stream().mapToDouble(item -> item.getPricePerSlot()*item.getSlotNumber()).sum();
+		}
+		UserKPI user = new UserKPI(username, u.getFullName(), u.getRole().getName(), list.size(),rev);
 		return user;
 	}
 }

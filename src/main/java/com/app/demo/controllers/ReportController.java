@@ -60,6 +60,7 @@ public class ReportController {
 			@RequestParam(required = false,defaultValue = "0") int taskId,
 			@RequestParam(required = false) String key,
 			@RequestParam(required = false) String district,
+			@RequestParam(required = false)Boolean isSuccess,
 			@RequestParam(required = false) String purpose,
 			@RequestParam(required = false) String fullName,
 			@RequestParam(required = false) String schoolYear,
@@ -76,7 +77,7 @@ public class ReportController {
 			convertedFromDate = sdf.parse(fromDate);
 			convertedToDate = sdf.parse(toDate);
 		}
-		return service.getReportByFilter(taskId,key, district, purpose, fullName, schoolYear, convertedFromDate, convertedToDate, page, limit, column, direction);	
+		return service.getReportByFilter(isSuccess,taskId,key, district, purpose, fullName, schoolYear, convertedFromDate, convertedToDate, page, limit, column, direction);	
 	}
 	@GetMapping("/{reportId}")
 	public ReportDTO getOne(@PathVariable int reportId) {

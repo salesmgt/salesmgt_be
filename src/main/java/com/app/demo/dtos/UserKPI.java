@@ -14,4 +14,5 @@ public class UserKPI {
 	private String fullName;
 	private String role;
 	private int serviceNumber;
+	private double revenue;
 }

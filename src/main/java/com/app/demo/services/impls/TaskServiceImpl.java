@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -39,6 +40,7 @@ import com.app.demo.models.District_;
 import com.app.demo.models.EducationalLevel;
 import com.app.demo.models.EducationalLevel_;
 import com.app.demo.models.Report;
+import com.app.demo.models.Report_;
 import com.app.demo.models.School;
 import com.app.demo.models.SchoolStatus;
 import com.app.demo.models.SchoolStatus_;
@@ -94,7 +96,9 @@ public class TaskServiceImpl implements ITaskSchoolService {
 	}
 	
 	@Override
-	public Paging<TaskDTO> getTargetByFilter(Boolean assign,String status,String username, String key,String purpose,SchoolType type,String educationalLevel,String fullName, String district, String schoolYear, int page, int limit, String column, String direction) {
+	public Paging<TaskDTO> getTargetByFilter(String result,Boolean assign,String status,String username, String key,String purpose,SchoolType type,String educationalLevel,String fullName, String district, String schoolYear, int page, int limit, String column, String direction) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		Page<Task> entities = (Page<Task>) repo.findAll((Specification<Task>) (root, query, builder) -> {
 			Join<Task, User> target_user = root.join(Task_.USER,JoinType.LEFT);
 			Join<Task, School> target_school = root.join(Task_.SCHOOL);			
@@ -138,9 +142,22 @@ public class TaskServiceImpl implements ITaskSchoolService {
 			if(!ObjectUtils.isEmpty(fullName)) {
 				p = builder.and(p, builder.equal(target_user.get(User_.FULL_NAME), fullName));
 			}
+			if(!ObjectUtils.isEmpty(result)) {
+				if(result.equalsIgnoreCase("Ongoing")) {
+				p = builder.and(p,builder.equal(root.get(Task_.RESULT), "TBD"));
+//				p = builder.and(p,builder.greaterThanOrEqualTo(root.get(Task_.END_DATE), new Date()));
+//				}
+//				else if (result.equalsIgnoreCase("failed")) {
+//				p = builder.and(p,builder.equal(root.get(Task_.RESULT), "TBD"));	
+//				p = builder.and(p,builder.lessThanOrEqualTo(root.get(Task_.END_DATE), new Date()));
+				}else {
+				p = builder.and(p,builder.equal(root.get(Task_.RESULT), result));	
+				}
+			}
 			if(!ObjectUtils.isEmpty(username)) {
 			p = builder.and(p, builder.equal(target_user.get(User_.USERNAME), username));
 			}
+			
 			if(!ObjectUtils.isEmpty(purpose)) {
 				p = builder.and(p, builder.equal(target_purpose.get(Purpose_.NAME),purpose));
 			}
@@ -149,8 +166,6 @@ public class TaskServiceImpl implements ITaskSchoolService {
 			return p;
 		}, paging(page, limit, column, direction));
 		List<TaskDTO> results = new ArrayList<TaskDTO>();
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		Paging<TaskDTO> targetPage = new Paging<TaskDTO>();
 		if (entities.hasContent()) {
 			entities.getContent().forEach(item -> {
@@ -473,5 +488,19 @@ public class TaskServiceImpl implements ITaskSchoolService {
 		 Collections.sort(list);
 			
 		return list;
+	}
+	@Override
+	public void completeTask(int id) {
+		Task task = repo.getOne(id);
+		task.setResult("successful");
+		task.setCompletedDate(new Date());
+		repo.save(task);
+	}
+	@Override
+	public void failTask(int id) {
+		Task task = repo.getOne(id);
+		task.setResult("failed");
+		task.setCompletedDate(new Date());
+		repo.save(task);
 	}
 }

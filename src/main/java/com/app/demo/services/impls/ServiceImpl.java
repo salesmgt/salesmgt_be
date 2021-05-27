@@ -31,6 +31,8 @@ import com.app.demo.models.Task;
 import com.app.demo.models.Task_;
 import com.app.demo.models.User;
 import com.app.demo.models.User_;
+import com.app.demo.repositories.SchoolRepository;
+import com.app.demo.repositories.SchoolStatusRepository;
 import com.app.demo.repositories.ServiceRepository;
 import com.app.demo.repositories.ServiceTypeRepository;
 import com.app.demo.repositories.TaskRepository;
@@ -41,6 +43,10 @@ public class ServiceImpl implements IServiceService {
 
 	@Autowired
 	private ServiceRepository repo;
+	@Autowired
+	private SchoolStatusRepository statusRepo;
+	@Autowired
+	private SchoolRepository schoolRepo;
 	@Autowired
 	private TaskRepository targetRepo;
 	@Autowired
@@ -106,7 +112,6 @@ public class ServiceImpl implements IServiceService {
 		entity.setTask(target);
 		entity.setStatus("pending");
 		repo.save(entity);
-		targetRepo.save(target);
 	}
 
 	public void approve(int id) {
@@ -118,8 +123,14 @@ public class ServiceImpl implements IServiceService {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
+		Task task = entity.getTask();
 		entity.setStatus("approved");
 		repo.save(entity);
+		task.setResult("successful");
+		targetRepo.save(task);
+		School school = task.getSchool();
+		school.setSchoolStatus(statusRepo.findByName("Đang hợp tác"));
+		schoolRepo.save(school);
 	}
 
 	public void reject(int id, String content) {

@@ -33,6 +33,7 @@ import com.app.demo.models.School;
 import com.app.demo.models.Purpose;
 import com.app.demo.models.Purpose_;
 import com.app.demo.models.School_;
+import com.app.demo.models.Service_;
 import com.app.demo.models.Task;
 import com.app.demo.models.Task_;
 import com.app.demo.models.User;
@@ -58,7 +59,7 @@ public class ReportServiceImpl implements IReportService{
 		return paging;
 	}
 	@Override
-	public Paging<ReportDTO> getReportByFilter(int targetId,String key,String district, String purpose, String fullName, String schoolYear,
+	public Paging<ReportDTO> getReportByFilter(Boolean isSuccess,int targetId,String key,String district, String purpose, String fullName, String schoolYear,
 			Date fromDate, Date toDate, int page, int limit, String column, String direction) {
 		Page<Report> entities =  (Page<Report>) repo.findAll((Specification<Report>)(root,query,builder) -> {
 			Join<Report, Task> report_target = root.join(Report_.TASK);
@@ -94,7 +95,12 @@ public class ReportServiceImpl implements IReportService{
 			if (!ObjectUtils.isEmpty(fromDate) && !ObjectUtils.isEmpty(toDate)) {
 				p = builder.and(p,builder.between(root.get(Report_.DATE),fromDate,toDate));
 			}
-			
+			if (!ObjectUtils.isEmpty(isSuccess)) {
+				if (isSuccess)
+					p =builder.and(p, builder.isTrue(root.get(Report_.IS_SUCCESS)));
+				else
+					p = builder.and(p, builder.isFalse(root.get(Report_.IS_SUCCESS)));
+			}
 			return p;
 		},paging(page, limit, column, direction));
 		Paging<ReportDTO> reportPage = new Paging<ReportDTO>();

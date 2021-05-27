@@ -1,6 +1,7 @@
 package com.app.demo.controllers;
 
 import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +45,13 @@ public class TaskController {
 			@RequestParam(required = false) String level,
 			@RequestParam(required = false) Boolean isAssigned,
 			@RequestParam(required = false) String type,
+			@RequestParam(required = false) String result,
 			@RequestParam(required = false) String purpose,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int limit, 
 			@RequestParam(defaultValue = "id") String column,
 			@RequestParam(defaultValue = "DESC") String direction){
-		Paging<TaskDTO> targets = service.getTargetByFilter(isAssigned,status,username,key,purpose,SchoolType.valueOfLabel(type),level,fullName,district, schoolYear, 
+		Paging<TaskDTO> targets = service.getTargetByFilter(result,isAssigned,status,username,key,purpose,SchoolType.valueOfLabel(type),level,fullName,district, schoolYear, 
 				page, limit, column, direction);
 		return targets;	
 	}
@@ -99,5 +101,15 @@ public class TaskController {
 	public String updatePurposeNote(@PathVariable int taskId,@RequestBody NotePurposeRequest request ) {
 		service.updatePurposeNote(taskId, request);
 		return "Updated";
+	}
+	@PutMapping("/completed/{taskId}")
+	public String completeTask(@PathVariable int taskId) {
+		service.completeTask(taskId);
+		return "Completed";
+	}
+	@PutMapping("/failed/{taskId}")
+	public String faildTask(@PathVariable int taskId) {
+		service.failTask(taskId);
+		return "Completed";
 	}
 }

@@ -35,7 +35,7 @@ public class Task extends Auditable<String> {
 	private int id;
 	@Column(length = 10)
 	private String schoolYear;
-	
+	private Date completedDate;
 	private boolean isActive;
 	private Date assignDate;
 	private Date endDate;

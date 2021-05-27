@@ -28,7 +28,7 @@ public class ExceptionHandlerController {
 	        return new ErrorMessage(403, ex.getMessage());
 	    }
 	    */
-	 /*@ExceptionHandler(RuntimeException.class)
+	 @ExceptionHandler(RuntimeException.class)
 	    @ResponseStatus(value = HttpStatus.FORBIDDEN)
 	    public ErrorMessage runTime(RuntimeException ex) {
 		
@@ -76,5 +76,5 @@ public class ExceptionHandlerController {
 	 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	    public ErrorMessage catchParse(Exception ex,  WebRequest request) {
 	        return new ErrorMessage(400, "Giá trị thuộc tính sai định dạng");
-	    }*/
+	    }
 }

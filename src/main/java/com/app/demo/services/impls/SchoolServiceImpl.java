@@ -1,13 +1,11 @@
 package com.app.demo.services.impls;
 
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,8 +29,6 @@ import com.app.demo.dtos.SchoolStatusRequest;
 import com.app.demo.dtos.SchoolTimelineItem;
 import com.app.demo.dtos.SuggestionSalesman;
 import com.app.demo.mappers.Mapper;
-import com.app.demo.models.Level;
-import com.app.demo.models.Role;
 import com.app.demo.models.SchoolStatus;
 import com.app.demo.models.SchoolStatus_;
 import com.app.demo.models.School;
@@ -55,7 +51,6 @@ import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.ISchoolService;
 import com.app.demo.utils.DistanceCalculateUtils;
 import com.app.demo.utils.VNCharacterUtils;
-import com.sun.mail.imap.protocol.Item;
 
 @Service
 public class SchoolServiceImpl implements ISchoolService {
@@ -149,6 +144,12 @@ public class SchoolServiceImpl implements ISchoolService {
 					}
 
 					if (!ObjectUtils.isEmpty(status)) {
+						if(status.equalsIgnoreCase("Chưa hợp tác")) {
+							Predicate chuaHopTac = criteriaBuilder.equal(school_status.get(SchoolStatus_.NAME), status);
+							Predicate tiemNang = criteriaBuilder.equal(school_status.get(SchoolStatus_.NAME), "Tiềm năng");
+							p = criteriaBuilder.and(p, criteriaBuilder.or(chuaHopTac,tiemNang));
+						}
+						else
 						p = criteriaBuilder.and(p,
 								criteriaBuilder.equal(school_status.get(SchoolStatus_.NAME), status));
 					}
