@@ -1,7 +1,5 @@
 package com.app.demo.dtos;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;

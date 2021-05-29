@@ -28,53 +28,5 @@ public class ExceptionHandlerController {
 	        return new ErrorMessage(403, ex.getMessage());
 	    }
 	    */
-	 @ExceptionHandler(RuntimeException.class)
-	    @ResponseStatus(value = HttpStatus.FORBIDDEN)
-	    public ErrorMessage runTime(RuntimeException ex) {
-		
-	        return new ErrorMessage(403, ex.getMessage());
-	    }
-	 @ExceptionHandler(java.lang.ArrayIndexOutOfBoundsException.class)
-	    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-	    public ErrorMessage indexOutOfBoundException(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(400, "Đối tượng đã tồn tại");
-	    }
-	 @ExceptionHandler(NullPointerException.class)   
-	 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-	    public ErrorMessage catchNullPointerException(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(404, "Đối tượng không tồn tại");
-	    }
-	   
-	 @ExceptionHandler(SQLIntegrityConstraintViolationException.class)   
-	 @ResponseStatus(value = HttpStatus.CONFLICT)
-	    public ErrorMessage catchSQLException(SQLIntegrityConstraintViolationException ex) {
-		 String cmt = ex.getMessage();
-		 return 
-	        	 new ErrorMessage(409, "Error at "+cmt);
-	    }
-	 
-	 @ExceptionHandler(IllegalStateException.class)   
-	 @ResponseStatus(value = HttpStatus.CONFLICT)
-	    public ErrorMessage catchIllegalStateException(IllegalStateException ex) {
-		
-		 return  new ErrorMessage(409, "Đối tượng đã tồn tại ");
-	    }
-	 
-	 
-	 @ExceptionHandler(HttpMessageNotReadableException.class)   
-	 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-	    public ErrorMessage catchRequest(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(409, "Giá trị thuộc tính sai định dạng");
-	    }
 	
-	  @ExceptionHandler(MethodArgumentNotValidException.class)   
-	 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-	    public ErrorMessage catchValidate(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(400, "Giá trị thuộc tính sai định dạng");
-	    }
-	   @ExceptionHandler(ParseException.class)   
-	 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-	    public ErrorMessage catchParse(Exception ex,  WebRequest request) {
-	        return new ErrorMessage(400, "Giá trị thuộc tính sai định dạng");
-	    }
 }

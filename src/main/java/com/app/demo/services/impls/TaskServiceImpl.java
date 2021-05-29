@@ -398,6 +398,8 @@ public class TaskServiceImpl implements ITaskSchoolService {
 	
 	public void updateTarget(int id,TargetUpdateRequest request) {
 		Task target = repo.getOne(id);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		if(target !=null && !ObjectUtils.isEmpty(request.getReprEmail())&&!ObjectUtils.isEmpty(request.getReprName())
 				&&!ObjectUtils.isEmpty(request.getReprPhone())&&!ObjectUtils.isEmpty(request.getReprIsMale())) {
 			School school = target.getSchool();
@@ -409,6 +411,12 @@ public class TaskServiceImpl implements ITaskSchoolService {
 		}
 		target.setSchoolYear(request.getSchoolYear());
 		target.setNote(request.getNote());
+		try {
+			target.setEndDate(sdf.parse(request.getDealine()));
+		} catch (ParseException e) {
+			
+			e.printStackTrace();
+		}
 		if(!request.getPurpose().equalsIgnoreCase(target.getPurpose().getName()))
 		target.setPurpose(purposeRepo.findByName(request.getPurpose()));
 		repo.save(target);

@@ -1,5 +1,6 @@
 package com.app.demo.models;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -8,8 +9,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -25,20 +24,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "Kpi")
+@Table(name = "KpiGroup")
 @EntityListeners(AuditingEntityListener.class)
-public class Kpi extends Auditable<String>{
+public class KpiGroup {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="user_id")
-	private User user;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="group_id")
-	private KpiGroup kpiGroup;
-	
-	@OneToMany(mappedBy="kpi", fetch = FetchType.LAZY)
-	private List<KpiDetails> kpiDetails;
+	private Date startDate;
+	private Date endDate;
+	private boolean isActive;
+	private String groupName;
+	@OneToMany(mappedBy="kpiGroup", fetch = FetchType.LAZY)
+	private List<Kpi> kpis;
+
 }

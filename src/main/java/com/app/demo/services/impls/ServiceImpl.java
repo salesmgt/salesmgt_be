@@ -88,7 +88,7 @@ public class ServiceImpl implements IServiceService {
 	public void insert(ServiceDTO dto) {
 		com.app.demo.models.Service entity = Mapper.getMapper().map(dto, com.app.demo.models.Service.class);
 		SimpleDateFormat sdff = new SimpleDateFormat("yyyy-MM-dd");
-		sdff.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		//sdff.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
 		entity.setApproveDate(null);
 		try {
@@ -201,10 +201,14 @@ public class ServiceImpl implements IServiceService {
 					return p;
 				}, paging(page, limit, column, direction));
 		List<ServiceDTO> results = new ArrayList<ServiceDTO>();
+		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+		
 		Paging<ServiceDTO> servicePage = new Paging<ServiceDTO>();
 		if (pageEntities.hasContent()) {
 			pageEntities.getContent().forEach(service -> {
 				ServiceDTO dto = Mapper.getMapper().map(service, ServiceDTO.class);
+				dto.setEndDate(sdf.format(service.getEndDate()));
+				dto.setStartDate(sdf.format(service.getStartDate()));
 				dto.setServiceType(service.getServiceType().getName());
 				dto.setAvatar(service.getTask().getUser().getAvatar());
 				dto.setFullName(service.getTask().getUser().getFullName());
@@ -225,6 +229,8 @@ public class ServiceImpl implements IServiceService {
 	public ServiceDTO getOne(int id) {
 		com.app.demo.models.Service entity = repo.getOne(id);
 		ServiceDTO dto = Mapper.getMapper().map(entity, ServiceDTO.class);
+		dto.setEndDate(sdf.format(entity.getEndDate()));
+		dto.setStartDate(sdf.format(entity.getStartDate()));
 		dto.setUsername(entity.getTask().getUser().getUsername());
 		dto.setFullName(entity.getTask().getUser().getFullName());
 		dto.setAvatar(entity.getTask().getUser().getAvatar());

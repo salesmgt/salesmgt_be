@@ -144,12 +144,7 @@ public class SchoolServiceImpl implements ISchoolService {
 					}
 
 					if (!ObjectUtils.isEmpty(status)) {
-						if(status.equalsIgnoreCase("Chưa hợp tác")) {
-							Predicate chuaHopTac = criteriaBuilder.equal(school_status.get(SchoolStatus_.NAME), status);
-							Predicate tiemNang = criteriaBuilder.equal(school_status.get(SchoolStatus_.NAME), "Tiềm năng");
-							p = criteriaBuilder.and(p, criteriaBuilder.or(chuaHopTac,tiemNang));
-						}
-						else
+					
 						p = criteriaBuilder.and(p,
 								criteriaBuilder.equal(school_status.get(SchoolStatus_.NAME), status));
 					}
@@ -301,8 +296,16 @@ public class SchoolServiceImpl implements ISchoolService {
 			}
 			if (!ObjectUtils.isEmpty(district))
 				p = builder.and(p, builder.equal(school.get(District_.NAME), district));
-			if (!ObjectUtils.isEmpty(status))
-				p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME), status));
+			if (!ObjectUtils.isEmpty(status)) {
+					if(status.equalsIgnoreCase("Chưa hợp tác")) {
+						Predicate chuaHopTac = builder.equal(school_status.get(SchoolStatus_.NAME), status);
+						Predicate tiemNang = builder.equal(school_status.get(SchoolStatus_.NAME), "Tiềm năng");
+						p = builder.and(p, builder.or(chuaHopTac,tiemNang));
+					}
+					else
+					p = builder.and(p,
+							builder.equal(school_status.get(SchoolStatus_.NAME), status));
+				}
 			if (!ObjectUtils.isEmpty(level))
 				p = builder.and(p, builder.like(school_level.get(EducationalLevel_.NAME), "%" + level + "%"));
 			if (!ObjectUtils.isEmpty(type))

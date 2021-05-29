@@ -1,9 +1,7 @@
 package com.app.demo.services.impls;
 
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.time.Year;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
@@ -24,7 +22,6 @@ import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RecoverRequest;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.UserDTO;
-import com.app.demo.dtos.UserKPI;
 import com.app.demo.emails.EmailSenderService;
 import com.app.demo.mappers.Mapper;
 import com.app.demo.models.Role;
@@ -32,7 +29,6 @@ import com.app.demo.models.Role_;
 import com.app.demo.models.User;
 import com.app.demo.models.User_;
 import com.app.demo.repositories.RoleRepository;
-import com.app.demo.repositories.ServiceRepository;
 import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.IUserService;
 
@@ -43,8 +39,8 @@ public class UserServiceImpl implements IUserService {
 	private RoleRepository roleRepo;
 	@Autowired
 	private UserRepository repo;
-	@Autowired
-	private ServiceRepository serviceRepo;
+//	@Autowired
+//	private ServiceRepository serviceRepo;
 	@Autowired
 	private EmailSenderService email;
 	
@@ -260,25 +256,43 @@ public class UserServiceImpl implements IUserService {
 		repo.save(user);
 		clearToken(username);
 	}
-	private String getCurrentYear() {
-		int year = Year.now().getValue();
-		Calendar cal = Calendar.getInstance();
-		int month = cal.get(Calendar.MONTH) + 1;
-		String yearStr;
-		if (month > 4)
-			yearStr = String.valueOf(year) + "-" + String.valueOf(year + 1);
-		else
-			yearStr = String.valueOf(year - 1) + "-" + String.valueOf(year);
-		return yearStr;
-	}
-	public UserKPI getKPI(String username){
-		List<com.app.demo.models.Service> list = serviceRepo.findByUsernameAndSchoolYear(username, "2020-2021");
-		User u = repo.getOne(username);
-		double rev =0;
-		if(!ObjectUtils.isEmpty(list)) {
-			 rev = list.stream().mapToDouble(item -> item.getPricePerSlot()*item.getSlotNumber()).sum();
+//	private String getCurrentYear() {
+//		int year = Year.now().getValue();
+//		Calendar cal = Calendar.getInstance();
+//		int month = cal.get(Calendar.MONTH) + 1;
+//		String yearStr;
+//		if (month > 4)
+//			yearStr = String.valueOf(year) + "-" + String.valueOf(year + 1);
+//		else
+//			yearStr = String.valueOf(year - 1) + "-" + String.valueOf(year);
+//		return yearStr;
+//	}
+	
+	@Override
+	public List<UserDTO> getUsers(String key) {
+		List<User> entities = repo.findAll((Specification<User>) (root, query, builder) -> {
+			Join<User, Role> user_role = root.join(User_.ROLE);
+			Predicate p = builder.conjunction();
+			if (!ObjectUtils.isEmpty(key) ) {
+				Predicate username = builder.like(root.get(User_.USERNAME), "%" + key + "%");	
+				Predicate name= builder.like(root.get(User_.FULL_NAME), "%" + key + "%");
+				p = builder.or(username, name);
+			}
+				p = builder.and(p, builder.isTrue(root.get(User_.ACTIVE)));
+				p = builder.and(p, builder.equal(user_role.get(Role_.NAME), "SALESMAN"));
+			return p;
+		});
+		List<UserDTO> results = new ArrayList<UserDTO>();
+		if (!ObjectUtils.isEmpty(entities)) {
+			entities.forEach(item -> {
+				UserDTO dto = Mapper.getMapper().map(item, UserDTO.class);
+				dto.setRoleName(item.getRole().getName());
+				dto.setPasswordHash(null);
+				dto.setActive(item.isActive());
+				results.add(dto);
+			});
+			
 		}
-		UserKPI user = new UserKPI(username, u.getFullName(), u.getRole().getName(), list.size(),rev);
-		return user;
+		return results;
 	}
 }

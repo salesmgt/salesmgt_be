@@ -13,6 +13,7 @@ public class TargetUpdateRequest {
 	private int id;
 	private String schoolYear;
 	private String note;
+	private String dealine;
 	private String purpose;
 	private String reprEmail;
 	private String reprPhone;

@@ -1,6 +1,7 @@
 package com.app.demo.controllers;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -23,9 +24,6 @@ import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.RequestPasswordDTO;
 import com.app.demo.dtos.RequestProfileDTO;
 import com.app.demo.dtos.UserDTO;
-import com.app.demo.dtos.UserKPI;
-import com.app.demo.repositories.ServiceRepository;
-import com.app.demo.repositories.UserRepository;
 import com.app.demo.services.IUserService;
 
 @CrossOrigin
@@ -74,6 +72,10 @@ public class UserController {
 		}
 	}
 
+	@GetMapping("/get-all")
+	public List<UserDTO> getAll(@RequestParam(required = false) String key) {
+		return service.getUsers(key);
+	}
 	@GetMapping
 	public Paging<UserDTO> getByFilter(@RequestParam(required = false) String key,
 										@RequestParam(defaultValue = "0")int page,
@@ -87,10 +89,7 @@ public class UserController {
 				limit, column, direction,active,role,fullName);
 		return userPage;
 	}
-	@GetMapping("/kpi")
-	public UserKPI getKPIForUser(@RequestParam String username) {
-		return service.getKPI(username);
-	}
+
 	@PatchMapping("/{username}")
 	public String updateProfile(@PathVariable String username, @RequestBody RequestProfileDTO dto) {
 		service.updateProfile(username, dto.getAttribute(), dto.getLongitude(),dto.getLatitude(),dto.getValue());

@@ -33,7 +33,6 @@ import com.app.demo.models.School;
 import com.app.demo.models.Purpose;
 import com.app.demo.models.Purpose_;
 import com.app.demo.models.School_;
-import com.app.demo.models.Service_;
 import com.app.demo.models.Task;
 import com.app.demo.models.Task_;
 import com.app.demo.models.User;

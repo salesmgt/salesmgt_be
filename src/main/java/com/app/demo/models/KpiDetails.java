@@ -7,7 +7,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -27,12 +26,12 @@ public class KpiDetails {
 	private int id;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="kpi_id")
-	 private Kpi kpi;
-	private int times;
-	private double point;
-	private double ratio;
+	private Kpi kpi;
+	private double actualValue;
+	private double targetValue;
+	private double weight;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="criteria_id")
-	 private Criteria criteria;
+	private Criteria criteria;
 }
