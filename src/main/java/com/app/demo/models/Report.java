@@ -29,7 +29,7 @@ public class Report extends Auditable<String> {
 	
 	private Date date;
 	
-	@Column(name = "report_description")
+	@Column(name = "report_description") 	
 	private String description;
 	private boolean isSuccess;
 	

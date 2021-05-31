@@ -14,6 +14,7 @@ public class KpiDetailsDTO implements Comparable<KpiDetailsDTO> {
 	private String criteria;
 	private double value;
 	private String type;
+	private double weight;
 	
 	@Override
 	public int compareTo(KpiDetailsDTO o) {

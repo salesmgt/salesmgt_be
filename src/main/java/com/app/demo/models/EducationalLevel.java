@@ -18,7 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class EducationalLevel extends Auditable<String> {
+public class EducationalLevel {
 	@Id
 	@Column(name = "educational_level_id")
 	private int id;

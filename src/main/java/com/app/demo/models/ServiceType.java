@@ -17,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class ServiceType extends Auditable<String> {
+public class ServiceType {
 	@Id
 	private int id;
 	private String name;

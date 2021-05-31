@@ -12,4 +12,6 @@ public interface IKpiService {
 	List<KpiGroupDTO> getAll(String status,String key);
 	KpiGroupDetails getOneKpiGroup(int groupId);
 	KpiUserDetails getByKpiId(int kpiId);
+	void setDisbale(int id);
+	List<KpiGroupDTO> getGroupByUsername(String username,String status);
 }

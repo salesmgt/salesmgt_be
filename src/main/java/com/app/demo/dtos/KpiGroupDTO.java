@@ -1,6 +1,7 @@
 package com.app.demo.dtos;
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,5 +18,5 @@ public class KpiGroupDTO {
 	private Date endDate;
 	private boolean isActive;
 	private String groupName;
-	private int size;
+	private List<String> size;
 }

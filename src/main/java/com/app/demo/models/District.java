@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class District extends Auditable<String> {
+public class District {
 	@Id
 	@Column(name = "district_id")
 	private int id;

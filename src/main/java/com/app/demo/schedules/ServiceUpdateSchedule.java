@@ -10,19 +10,33 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import org.springframework.util.ObjectUtils;
 
 import com.app.demo.models.Kpi;
+import com.app.demo.models.KpiDetails;
+import com.app.demo.models.KpiGroup;
+import com.app.demo.models.KpiGroup_;
 import com.app.demo.models.School;
 import com.app.demo.models.Service;
+import com.app.demo.models.Service_;
 import com.app.demo.models.Task;
+import com.app.demo.models.Task_;
 import com.app.demo.models.User;
+import com.app.demo.models.User_;
+import com.app.demo.repositories.KpiGroupRepository;
 import com.app.demo.repositories.KpiRepository;
+import com.app.demo.repositories.KpiDetailsRepository;
 import com.app.demo.repositories.ReportRepository;
 import com.app.demo.repositories.SchoolRepository;
 import com.app.demo.repositories.SchoolStatusRepository;
@@ -45,12 +59,17 @@ public class ServiceUpdateSchedule /* implements SchedulingConfigurer */ {
 
 	@Autowired
 	private KpiRepository kpiRepo;
+	@Autowired
+	private KpiDetailsRepository kpiDetailRepo;
 
 	@Autowired
 	private ReportRepository reportRepo;
 
 	@Autowired
 	private TaskRepository targetRepo;
+	
+	@Autowired
+	private KpiGroupRepository groupRepo;
 	
 	@Autowired
 	private SchoolRepository schoolRepo;
@@ -217,4 +236,65 @@ public class ServiceUpdateSchedule /* implements SchedulingConfigurer */ {
 				schoolRepo.saveAll(schools);
 		}
 	}
+	@Scheduled(cron = "0 55 9 * * *", zone = "Asia/Saigon")
+	private void autoCalculateKpi() {
+		List<KpiGroup> list = groupRepo.findAll((Specification<KpiGroup>) (root, query, criteriaBuilder) -> {
+			Predicate p = criteriaBuilder.conjunction();
+			p = criteriaBuilder.and(p,criteriaBuilder.greaterThanOrEqualTo(root.get(KpiGroup_.END_DATE),new Date()));
+			p = criteriaBuilder.and(p, criteriaBuilder.isTrue(root.get(KpiGroup_.IS_ACTIVE)));
+			return p;
+		});
+	if(!ObjectUtils.isEmpty(list)) {
+		for (KpiGroup kpiGroup : list) {
+			processKPIGroup(kpiGroup);
+		}
+	}
+	}
+	private void processKPIGroup(KpiGroup group) {
+		for (Kpi kpi : group.getKpis()) {
+			processKPI(kpi,group.getStartDate(),group.getEndDate());
+		}
+	}
+	private void processKPI(Kpi kpi,Date start,Date end) {
+		List<KpiDetails> entities = new ArrayList<>();
+		for (KpiDetails detail : kpi.getKpiDetails()) {
+			switch (detail.getCriteria().getId()) {
+			case "DS":
+				double actual = calculateDoanhso(kpi.getUser().getUsername(), start,end);
+				detail.setActualValue(actual);
+				entities.add(detail);
+				break;
+			
+			default:
+				break;
+			}
+		}
+		kpiDetailRepo.saveAll(entities);
+		
+	}
+	private double calculateDoanhso(String username,Date start,Date end) {
+		List<Service> services = repo.findAll((Specification<Service>) (root, query, criteriaBuilder) -> {
+			Join<Service,Task> service_task = root.join(Service_.TASK);
+			Join<Task,User> service_task_user = service_task.join(Task_.USER);
+			Predicate p = criteriaBuilder.conjunction();
+			p= criteriaBuilder.and(p,criteriaBuilder.equal(root.get(Service_.STATUS),"approved"));
+			p = criteriaBuilder.and(p,criteriaBuilder.greaterThanOrEqualTo(root.get(Service_.APPROVE_DATE),start));
+			p= criteriaBuilder.and(p,criteriaBuilder.lessThanOrEqualTo(root.get(Service_.APPROVE_DATE),end));
+			p= criteriaBuilder.and(p,criteriaBuilder.equal(service_task_user.get(User_.USERNAME),username));
+			return p;
+		});
+		double value = 0;
+		if(!ObjectUtils.isEmpty(services)) {
+			
+			for (Service service : services) {
+				 int days = Days.daysBetween(new DateTime(service.getStartDate()),
+						 new DateTime(service.getEndDate())).getDays();
+				 double week = Math.ceil(days/7);
+				value = value +service.getPricePerSlot()*service.getSlotNumber() * service.getClassNumber()*week;	
+			}
+		
+		}
+		return value;
+	}
+	
 }

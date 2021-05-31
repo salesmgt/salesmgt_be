@@ -26,7 +26,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "KpiGroup")
 @EntityListeners(AuditingEntityListener.class)
-public class KpiGroup {
+public class KpiGroup extends Auditable<String>{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;

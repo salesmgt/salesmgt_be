@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,5 +28,14 @@ public class KpiGroupController {
 	@GetMapping("/{groupId}")
 	public KpiGroupDetails getAll(@PathVariable int groupId){
 		return service.getOneKpiGroup(groupId);
+	}
+	@DeleteMapping("/{groupId}")
+	public String disable(@PathVariable int groupId) {
+		service.setDisbale(groupId);
+		return "completed";
+	}
+	@GetMapping("/group")
+	public List<KpiGroupDTO> getAllByUsername(@RequestParam(required = false) String status,@RequestParam String username){
+		return service.getGroupByUsername(username, status);
 	}
 }

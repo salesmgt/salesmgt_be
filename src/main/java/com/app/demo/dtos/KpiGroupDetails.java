@@ -13,6 +13,7 @@ import lombok.Setter;
 @Setter
 public class KpiGroupDetails {
 	private int id;
+	private String groupName;
 	private List<KpiDetailsDTO> kpiDetails;
 	private List<KpiDTO> kpis;
 }
