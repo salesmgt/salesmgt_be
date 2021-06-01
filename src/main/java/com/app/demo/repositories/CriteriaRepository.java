@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.app.demo.models.Criteria;
 
 @Repository
-public interface CriteriaRepository extends JpaRepository<Criteria, Integer> {
+public interface CriteriaRepository extends JpaRepository<Criteria, String> {
 	Criteria findByName(String name);
 }

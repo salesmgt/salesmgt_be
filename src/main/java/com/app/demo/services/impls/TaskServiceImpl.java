@@ -40,7 +40,6 @@ import com.app.demo.models.District_;
 import com.app.demo.models.EducationalLevel;
 import com.app.demo.models.EducationalLevel_;
 import com.app.demo.models.Report;
-import com.app.demo.models.Report_;
 import com.app.demo.models.School;
 import com.app.demo.models.SchoolStatus;
 import com.app.demo.models.SchoolStatus_;

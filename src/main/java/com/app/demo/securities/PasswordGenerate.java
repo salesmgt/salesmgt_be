@@ -62,23 +62,65 @@ public class PasswordGenerate {
 //	double goc = Math.sin(khoangcach1/6371)*2;
 //	System.out.println(goc);
 //	System.out.println(2*Math.PI*6371*goc/360);
-		String strNowDate = "2021-05-18";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		Calendar c = Calendar.getInstance();
-		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
-		c.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
-		c.setTime(sdf.parse(strNowDate));
-		int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
-		System.out.println(dayOfWeek);
-		String strNowPreviousDate = null;
-		LocalDate date = LocalDate.parse(strNowDate);
-		if(dayOfWeek == 2)
-			strNowPreviousDate = date.minusDays(3).toString();
+//		String strNowDate = "2021-05-18";
+//		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//		Calendar c = Calendar.getInstance();
+//		sdf.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+//		c.setTimeZone(TimeZone.getTimeZone("Asia/Saigon"));
+//		c.setTime(sdf.parse(strNowDate));
+//		int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+//		System.out.println(dayOfWeek);
+//		String strNowPreviousDate = null;
+//		LocalDate date = LocalDate.parse(strNowDate);
+//		if(dayOfWeek == 2)
+//			strNowPreviousDate = date.minusDays(3).toString();
+//		
+//		else
+//			strNowPreviousDate = date.minusDays(1).toString();
+//		System.out.println(strNowPreviousDate);
 		
-		else
-			strNowPreviousDate = date.minusDays(1).toString();
-		System.out.println(strNowPreviousDate);
+		
+		String strNowDate = "2021-06-30";
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+Date test = sdf.parse(strNowDate);
+		System.out.println(days(new Date(),test));
+		
 	}
+	static long days(Date start, Date end){
+	    //Ignore argument check
+
+	    Calendar c1 = Calendar.getInstance();
+	    c1.setTime(start);
+	    int w1 = c1.get(Calendar.DAY_OF_WEEK);
+	    c1.add(Calendar.DAY_OF_WEEK, -w1);
+
+	    Calendar c2 = Calendar.getInstance();
+	    c2.setTime(end);
+	    int w2 = c2.get(Calendar.DAY_OF_WEEK);
+	    System.out.println(w2);
+	    c2.add(Calendar.DAY_OF_WEEK, -w2);
+
+	    //end Saturday to start Saturday 
+	    long days = (c2.getTimeInMillis()-c1.getTimeInMillis())/(1000*60*60*24);
+	    long daysWithoutWeekendDays = days-(days*2/7);
+
+	    // Adjust days to add on (w2) and days to subtract (w1) so that Saturday
+	    // and Sunday are not included
+	    if (w1 == Calendar.SUNDAY && w2 != Calendar.SATURDAY) {
+	        w1 = Calendar.MONDAY;
+	    } else if (w1 == Calendar.SATURDAY && w2 != Calendar.SUNDAY) {
+	        w1 = Calendar.FRIDAY;
+	    } 
+
+	    if (w2 == Calendar.SUNDAY) {
+	        w2 = Calendar.MONDAY;
+	    } else if (w2 == Calendar.SATURDAY) {
+	        w2 = Calendar.FRIDAY;
+	    }
+
+	    return daysWithoutWeekendDays-w1+w2;
+	}
+		
 }
 @Getter
 @Setter

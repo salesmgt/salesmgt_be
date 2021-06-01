@@ -13,7 +13,7 @@ public class KpiDetailDTO {
 	private double actualValue;
 	private double targetValue;
 	private double weight;
-	private int criteriaId;
+	private String criteriaId;
 	private int kpiDetailId;
 	private String cirteriaContent;
 	private String type;

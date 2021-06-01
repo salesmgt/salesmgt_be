@@ -2,7 +2,6 @@ package com.app.demo.schedules;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -27,6 +26,10 @@ import com.app.demo.models.Kpi;
 import com.app.demo.models.KpiDetails;
 import com.app.demo.models.KpiGroup;
 import com.app.demo.models.KpiGroup_;
+import com.app.demo.models.Purpose;
+import com.app.demo.models.Purpose_;
+import com.app.demo.models.Report;
+import com.app.demo.models.Report_;
 import com.app.demo.models.School;
 import com.app.demo.models.Service;
 import com.app.demo.models.Service_;
@@ -43,6 +46,7 @@ import com.app.demo.repositories.SchoolStatusRepository;
 import com.app.demo.repositories.ServiceRepository;
 import com.app.demo.repositories.TaskRepository;
 import com.app.demo.repositories.UserRepository;
+import com.app.demo.utils.CalculateDays;
 
 @Configuration
 @EnableScheduling
@@ -236,7 +240,7 @@ public class ServiceUpdateSchedule /* implements SchedulingConfigurer */ {
 				schoolRepo.saveAll(schools);
 		}
 	}
-	@Scheduled(cron = "0 55 9 * * *", zone = "Asia/Saigon")
+	@Scheduled(cron = "0 2 0 * * *", zone = "Asia/Saigon")
 	private void autoCalculateKpi() {
 		List<KpiGroup> list = groupRepo.findAll((Specification<KpiGroup>) (root, query, criteriaBuilder) -> {
 			Predicate p = criteriaBuilder.conjunction();
@@ -258,13 +262,39 @@ public class ServiceUpdateSchedule /* implements SchedulingConfigurer */ {
 	private void processKPI(Kpi kpi,Date start,Date end) {
 		List<KpiDetails> entities = new ArrayList<>();
 		for (KpiDetails detail : kpi.getKpiDetails()) {
+			double actual = 0;
+			String username = kpi.getUser().getUsername();
 			switch (detail.getCriteria().getId()) {
 			case "DS":
-				double actual = calculateDoanhso(kpi.getUser().getUsername(), start,end);
+				actual = calculateDoanhso(username, start,end);
 				detail.setActualValue(actual);
 				entities.add(detail);
 				break;
-			
+			case "NS":
+				actual = calculateSoServiceSale(username, start, end);
+				detail.setActualValue(actual);
+				entities.add(detail);
+			break;
+			case "PCT":
+				actual = calculateTaskPercent(username, start, end);
+				detail.setActualValue(actual);
+				entities.add(detail);
+			break;
+			case "RP":
+				actual = calculateReport(username,start,end);
+				detail.setActualValue(actual);
+				entities.add(detail);
+				break;
+			case "PRP":
+				actual = calculateReportSuccess(username,start,end);
+				detail.setActualValue(actual);
+				entities.add(detail);
+				break;
+			case "PS":
+				actual = calculateSaleSucessPercent(username,start,end);
+				detail.setActualValue(actual);
+				entities.add(detail);
+				break;
 			default:
 				break;
 			}
@@ -296,5 +326,139 @@ public class ServiceUpdateSchedule /* implements SchedulingConfigurer */ {
 		}
 		return value;
 	}
-	
+	private double calculateSoServiceSale(String username, Date start, Date end) {
+		double value = 0;
+		List<com.app.demo.models.Service> services = repo.findAll((Specification<com.app.demo.models.Service>) (root, query, criteriaBuilder) -> {
+			Join<Service,Task> service_task = root.join(Service_.TASK);
+			Join<Task,User> service_task_user = service_task.join(Task_.USER);
+			Predicate p = criteriaBuilder.conjunction();
+			p= criteriaBuilder.and(p,criteriaBuilder.equal(root.get(Service_.STATUS),"approved"));
+			p = criteriaBuilder.and(p,criteriaBuilder.greaterThanOrEqualTo(root.get(Service_.SUBMIT_DATE),start));
+			p= criteriaBuilder.and(p,criteriaBuilder.lessThanOrEqualTo(root.get(Service_.SUBMIT_DATE),end));
+			p= criteriaBuilder.and(p,criteriaBuilder.equal(service_task_user.get(User_.USERNAME),username));
+			return p;
+		});
+		if(!ObjectUtils.isEmpty(services))
+			value = services.size();
+		return value;
+	}
+	private double calculateTaskPercent(String username, Date start, Date end) {
+		double value = 0;
+		List<Task> tasks = targetRepo.findAll((root, query, builder) -> {
+			Join<Task, User> target_user = root.join(Task_.USER);
+			Predicate p = builder.conjunction();
+			p= builder.and(p,builder.lessThanOrEqualTo(root.get(Task_.COMPLETED_DATE),end)); 
+			p= builder.and(p,builder.greaterThanOrEqualTo(root.get(Task_.COMPLETED_DATE),start)); 
+			p = builder.and(p, builder.equal(target_user.get(User_.USERNAME), username));
+			p = builder.and(p, builder.equal(root.get(Task_.RESULT), "successful"));
+			return p;
+		});
+		List<Task> taskAll = targetRepo.findAll((root, query, builder) -> {
+			Join<Task, User> target_user = root.join(Task_.USER);
+			Predicate p = builder.conjunction();
+			
+			Predicate th1 = builder.conjunction();
+			th1 = builder.between(root.get(Task_.ASSIGN_DATE), start, end);
+			th1 = builder.and(p, builder.between(root.get(Task_.END_DATE), start, end));
+
+			Predicate th21 = builder.lessThanOrEqualTo(root.get(Task_.ASSIGN_DATE), start);
+			Predicate th22 = builder.greaterThanOrEqualTo(root.get(Task_.END_DATE), start);
+			Predicate th2 = builder.and(th21, th22);
+
+			Predicate th31 = builder.lessThanOrEqualTo(root.get(Task_.ASSIGN_DATE), end);
+			Predicate th32 = builder.greaterThanOrEqualTo(root.get(Task_.END_DATE), end);
+			Predicate th3 = builder.and(th31, th32);
+			
+			Predicate th41 = builder.lessThanOrEqualTo(root.get(Task_.ASSIGN_DATE), start);
+			Predicate th42 = builder.greaterThanOrEqualTo(root.get(Task_.END_DATE), end);
+			Predicate th4 = builder.and(th41, th42);
+			
+			Predicate th = builder.or(th1, th2, th3, th4);
+			p = builder.and(p, builder.equal(target_user.get(User_.USERNAME), username));
+			p = builder.and(p, th);
+			return p;
+		});
+		if(!ObjectUtils.isEmpty(tasks))
+			value = tasks.size()*100/taskAll.size();
+		return value;
+	}
+	private double calculateReport(String username, Date start, Date end) {
+		double value = 0;
+		List<Report> reports = reportRepo.findAll((root,query,builder) -> {
+			Join<Report, Task> report_target = root.join(Report_.TASK);
+			Join<Task, User> target_user = report_target.join(Task_.USER);
+			Predicate p = builder.conjunction();
+			p = builder.and(p,builder.equal(target_user.get(User_.USERNAME), username));
+			p = builder.and(p,builder.between(root.get(Report_.DATE),start,end));
+			return p;
+		});
+		if(!ObjectUtils.isEmpty(reports))
+			value = reports.size()/CalculateDays.daysWithoutWeekendDays(start, end);
+		return value;
+	}
+	private double calculateReportSuccess(String username, Date start, Date end) {
+		double value = 0;
+		List<Report> reports = reportRepo.findAll((root,query,builder) -> {
+			Join<Report, Task> report_target = root.join(Report_.TASK);
+			Join<Task, User> target_user = report_target.join(Task_.USER);
+			Predicate p = builder.conjunction();
+			p = builder.and(p,builder.equal(target_user.get(User_.USERNAME), username));
+			p = builder.and(p,builder.between(root.get(Report_.DATE),start,end));
+			p = builder.and(p,builder.isTrue(root.get(Report_.IS_SUCCESS)));
+			return p;
+		});
+		if(!ObjectUtils.isEmpty(reports))
+			value = reports.size()/CalculateDays.daysWithoutWeekendDays(start, end);
+		return value;
+	}
+	private double calculateSaleSucessPercent(String username,Date start,Date end) {
+		double value = 0;
+		List<Task> tasks = targetRepo.findAll((Specification<Task>) (root, query, builder) -> {
+			Join<Task, User> target_user = root.join(Task_.USER);
+			Join<Task, Purpose> target_purpose = root.join(Task_.PURPOSE);
+			Predicate p = builder.conjunction();
+			Predicate newSales = builder.equal(target_purpose.get(Purpose_.NAME),"Sales mới");
+			Predicate taiKy = builder.equal(target_purpose.get(Purpose_.NAME),"Tái ký hợp đồng");
+			Predicate kyMoi = builder.equal(target_purpose.get(Purpose_.NAME),"Ký mới hợp đồng");
+			p = builder.or(newSales,taiKy,kyMoi);
+			p = builder.and(p, builder.equal(root.get(Task_.RESULT), "successful"));
+			p= builder.and(p,builder.lessThanOrEqualTo(root.get(Task_.COMPLETED_DATE),end)); 
+			p= builder.and(p,builder.greaterThanOrEqualTo(root.get(Task_.COMPLETED_DATE),start)); 
+			p = builder.and(p, builder.equal(target_user.get(User_.USERNAME), username));
+			return p;
+		});
+		List<Task> taskAll = targetRepo.findAll((Specification<Task>) (root, query, builder) -> {
+			Join<Task, User> target_user = root.join(Task_.USER);
+			Join<Task, Purpose> target_purpose = root.join(Task_.PURPOSE);
+			Predicate p = builder.conjunction();
+			Predicate newSales = builder.equal(target_purpose.get(Purpose_.NAME),"Sales mới");
+			Predicate taiKy = builder.equal(target_purpose.get(Purpose_.NAME),"Tái ký hợp đồng");
+			Predicate kyMoi = builder.equal(target_purpose.get(Purpose_.NAME),"Ký mới hợp đồng");
+			p = builder.or(newSales,taiKy,kyMoi); 
+			
+			Predicate th1 = builder.conjunction();
+			th1 = builder.between(root.get(Task_.ASSIGN_DATE), start, end);
+			th1 = builder.and(p, builder.between(root.get(Task_.END_DATE), start, end));
+
+			Predicate th21 = builder.lessThanOrEqualTo(root.get(Task_.ASSIGN_DATE), start);
+			Predicate th22 = builder.greaterThanOrEqualTo(root.get(Task_.END_DATE), start);
+			Predicate th2 = builder.and(th21, th22);
+
+			Predicate th31 = builder.lessThanOrEqualTo(root.get(Task_.ASSIGN_DATE), end);
+			Predicate th32 = builder.greaterThanOrEqualTo(root.get(Task_.END_DATE), end);
+			Predicate th3 = builder.and(th31, th32);
+			
+			Predicate th41 = builder.lessThanOrEqualTo(root.get(Task_.ASSIGN_DATE), start);
+			Predicate th42 = builder.greaterThanOrEqualTo(root.get(Task_.END_DATE), end);
+			Predicate th4 = builder.and(th41, th42);
+			
+			Predicate th = builder.or(th1, th2, th3, th4);
+			p = builder.and(p, builder.equal(target_user.get(User_.USERNAME), username));
+			p = builder.and(p, th);
+			return p;
+		});
+		if(!ObjectUtils.isEmpty(tasks))
+			value = tasks.size()*100/taskAll.size();
+		return value;
+	}
 }

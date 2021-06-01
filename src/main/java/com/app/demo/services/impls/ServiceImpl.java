@@ -127,10 +127,12 @@ public class ServiceImpl implements IServiceService {
 		entity.setStatus("approved");
 		repo.save(entity);
 		task.setResult("successful");
+		task.setCompletedDate(new Date());
 		targetRepo.save(task);
 		School school = task.getSchool();
 		school.setSchoolStatus(statusRepo.findByName("Đang hợp tác"));
 		schoolRepo.save(school);
+		
 	}
 
 	public void reject(int id, String content) {

@@ -1,5 +1,6 @@
 package com.app.demo.dtos;
 
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -15,5 +16,7 @@ public class KpiGroupDetails {
 	private int id;
 	private String groupName;
 	private List<KpiDetailsDTO> kpiDetails;
+	private Date startDate;
+	private Date endDate;
 	private List<KpiDTO> kpis;
 }
