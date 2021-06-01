@@ -441,37 +441,10 @@ public class TaskServiceImpl implements ITaskSchoolService {
 			repo.save(target);
 		}
 	}
-	@Override
-	public DashboardDTO getDataset() {
-		List<String> years =repo.getSchoolYears();
-		TreeMap<String, List<TotalSchoolDTO>> map2 = new TreeMap<String, List<TotalSchoolDTO>>();
-		TreeMap<String, List<TotalSchoolDTO>> map3 = new TreeMap<String, List<TotalSchoolDTO>>();
-		TreeMap<String, List<TotalSchoolDTO>> map4 = new TreeMap<String, List<TotalSchoolDTO>>();
-		TreeMap<String, List<TotalSchoolDTO>> map5 = new TreeMap<String, List<TotalSchoolDTO>>();
-		TreeMap<String, List<TotalSchoolDTO>> map6 = new TreeMap<String, List<TotalSchoolDTO>>();
-		for (String year : years) {
-			
-			ArrayList<TotalSchoolDTO> list2 = new ArrayList<>();
-			list2.add(new TotalSchoolDTO(repo.countBySchoolYearAndPurpose(year, "Ký mới hợp đồng")));
-			map2.put(year,list2);
+
+	public List<DashboardDTO> getSchoolType() {
 		
-			ArrayList<TotalSchoolDTO> list3 = new ArrayList<>();
-			list3.add(new TotalSchoolDTO(repo.countBySchoolYearAndPurpose(year, "Theo dõi")));
-			map3.put(year,list3);
-			
-			ArrayList<TotalSchoolDTO> list4 = new ArrayList<>();
-			list4.add(new TotalSchoolDTO(repo.countBySchoolYearAndPurpose(year, "Chăm sóc")));
-			map4.put(year,list4);
-			
-			ArrayList<TotalSchoolDTO> list5 = new ArrayList<>();
-			list5.add(new TotalSchoolDTO(repo.countBySchoolYearAndPurpose(year, "Tái ký hợp đồng")));
-			map5.put(year,list5);
-			
-			ArrayList<TotalSchoolDTO> list6 = new ArrayList<>();
-			list6.add(new TotalSchoolDTO(repo.countBySchoolYearAndPurpose(year, "Sales mới")));
-			map6.put(year,list6);
-		}
-		return new DashboardDTO(map6, map3, map5, map2, map4);
+		return null;
 	}
 	
 	@Override

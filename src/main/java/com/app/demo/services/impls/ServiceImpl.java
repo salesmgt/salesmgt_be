@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +22,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.app.demo.dtos.DashboardColumnObject;
+import com.app.demo.dtos.DashboardDTO;
 import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.ServiceDTO;
 import com.app.demo.mappers.Mapper;
@@ -241,5 +246,86 @@ public class ServiceImpl implements IServiceService {
 		dto.setEducationLevel(entity.getTask().getSchool().getEducationalLevel().getName());
 		dto.setAddress(entity.getTask().getSchool().getAddress());
 		return dto;
+	}
+	@Override
+	public List<?> getServiceForDashBoard(String name){
+		List<String> types =  getType();
+		List<String> years = getSchoolYear();
+		List<DashboardColumnObject> result = new ArrayList<>();
+		switch (name) {
+		case "SL":
+			for (String type : types) {
+				DashboardColumnObject dto = calculateSoLuong(type, years);
+				result.add(dto);
+			}
+			break;
+		case "DS":
+			for (String type : types) {
+				DashboardColumnObject dto = calculateDoanhSo(type, years);
+				result.add(dto);
+			}
+			break;
+
+		default:
+			break;
+		}
+		return result;
+	}
+	public List<String> getSchoolYear(){
+		return targetRepo.getSchoolYears();
+}
+	private List<String> getType(){
+		List<ServiceType> entities = typeRepo.findAll();
+		List<String> names = entities.stream().map(ServiceType::getName).collect(Collectors.toList());
+		return names;
+	}
+	private DashboardColumnObject calculateSoLuong(String type, List<String> years) {
+		List<Double> list = new ArrayList<>();
+		for (String year : years) {
+			List<com.app.demo.models.Service> services =  repo.findAll((root, query, criteriaBuilder) -> {
+				Join<com.app.demo.models.Service, Task> service_task = root.join(Service_.TASK);
+				Join<com.app.demo.models.Service, ServiceType> service_type = root.join(Service_.SERVICE_TYPE);
+				Predicate p = criteriaBuilder.conjunction();
+				p = criteriaBuilder.and(p,
+						criteriaBuilder.equal(service_type.get(ServiceType_.NAME), type));
+				p = criteriaBuilder.and(p,
+						criteriaBuilder.equal(service_task.get(Task_.SCHOOL_YEAR), year));
+				p = criteriaBuilder.and(p,
+						criteriaBuilder.equal(root.get(Service_.STATUS), "approved"));
+				return p;
+		});
+			double value = services.size();
+			list.add(value);
+		}
+		 DashboardColumnObject result = new DashboardColumnObject(type,list);
+		return result;
+	}
+	private DashboardColumnObject calculateDoanhSo(String type, List<String> years) {
+		List<Double> list = new ArrayList<>();
+		for (String year : years) {
+			List<com.app.demo.models.Service> services =  repo.findAll((root, query, criteriaBuilder) -> {
+				Join<com.app.demo.models.Service, Task> service_task = root.join(Service_.TASK);
+				Join<com.app.demo.models.Service, ServiceType> service_type = root.join(Service_.SERVICE_TYPE);
+				Predicate p = criteriaBuilder.conjunction();
+				p = criteriaBuilder.and(p,
+						criteriaBuilder.equal(service_type.get(ServiceType_.NAME), type));
+				p = criteriaBuilder.and(p,
+						criteriaBuilder.equal(service_task.get(Task_.SCHOOL_YEAR), year));
+				p = criteriaBuilder.and(p,
+						criteriaBuilder.equal(root.get(Service_.STATUS), "approved"));
+				return p;
+		});
+			double value = 0;
+			if(services.size()>0)
+			for (com.app.demo.models.Service service : services) {
+				 int days = Days.daysBetween(new DateTime(service.getStartDate()),
+						 new DateTime(service.getEndDate())).getDays();
+				 double week = Math.ceil(days/7);
+				value = value +service.getPricePerSlot()*service.getSlotNumber() * service.getClassNumber()*week;	
+			}
+			list.add(value);
+	}
+		 DashboardColumnObject result = new DashboardColumnObject(type,list);
+			return result;
 	}
 }

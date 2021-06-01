@@ -25,8 +25,8 @@ public interface ITaskSchoolService {
 	void updateTarget(int id,TargetUpdateRequest request);
 	void updatePurposeNote(int id, NotePurposeRequest request);
 	void unassign(int targetId);
-	DashboardDTO getDataset();
 	List<TaskTimelineItem> getTimeline(int targetId);
 	void completeTask(int taskId);
 	void failTask(int id);
+	
 }

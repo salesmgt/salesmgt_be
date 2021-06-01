@@ -17,4 +17,5 @@ public class KpiDetailDTO {
 	private int kpiDetailId;
 	private String cirteriaContent;
 	private String type;
+	private String description;
 }

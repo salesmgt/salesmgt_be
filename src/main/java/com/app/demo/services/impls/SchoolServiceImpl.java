@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -22,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.app.demo.dtos.DashboardDTO;
 import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.Principle;
 import com.app.demo.dtos.SchoolDTO;
@@ -655,4 +658,110 @@ public class SchoolServiceImpl implements ISchoolService {
 		Collections.sort(exps);
 		return exps;
 	}
+	public List<DashboardDTO> getSchoolType(String type){
+		List<DashboardDTO> result = new ArrayList<DashboardDTO>();
+		List<String> list =null;
+		switch (type) {
+		case "school-status":
+			list = getSchoolStatus();
+			for (String item : list) {
+				DashboardDTO dto = new DashboardDTO(item,calculateSchoolStatus(item));
+				result.add(dto);
+			}
+			break;
+		case "level":
+			list = getLevel();
+			for (String item : list) {
+				DashboardDTO dto = new DashboardDTO(item,calculateSchoolLevel(item));
+				result.add(dto);
+			}
+			break;
+		case "district":
+			list = getDistrict();
+			for (String item : list) {
+				DashboardDTO dto = new DashboardDTO(item,calculateSchoolDistrict(item));
+				result.add(dto);
+			}
+			break;
+		case "school-type":
+			list = getType();
+			for (String item : list) {
+				DashboardDTO dto = new DashboardDTO(item,calculateSchoolType(item));
+				result.add(dto);
+			}
+			break;
+		default:
+			break;
+		}
+		return result;
+	}
+	private List<String> getSchoolStatus() {
+		List<SchoolStatus> entities = statusRepo.findAll();
+		List<String> names = entities.stream().map(SchoolStatus::getName).collect(Collectors.toList());
+		return names;
+	}
+	private double calculateSchoolStatus(String type) {
+		List<School> list = repo.findAll((Specification<School>) (root, query, builder) -> {
+			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
+			Predicate p = builder.conjunction();
+		p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME), type));
+		p = builder.and(p, builder.isTrue(root.get(School_.IS_ACTIVE)));
+		return p;
+		
+	});
+		return list.size();
+	}
+	private List<String> getLevel(){
+		 List<EducationalLevel> entities = eduRepo.findAll();
+			List<String> names = entities.stream().map(EducationalLevel::getName).collect(Collectors.toList());
+			return names;
+		}
+	private double calculateSchoolLevel(String type) {
+		List<School> list = repo.findAll((root, query, builder) -> {
+			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
+			Join<School, EducationalLevel> school_level = root.join(School_.EDUCATIONAL_LEVEL);
+			Predicate p = builder.conjunction();
+		p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME), "Đang hợp tác"));
+		p = builder.and(p, builder.isTrue(root.get(School_.IS_ACTIVE)));
+		p = builder.and(p, builder.equal(school_level.get(EducationalLevel_.NAME), type));
+		return p;
+		
+	});
+		return list.size();
+	}
+	private List<String> getDistrict(){
+		List<District> entities = districtRepo.findAll();
+		List<String> names = entities.stream().map(District::getName).collect(Collectors.toList());
+		return names;
+	}
+	private double calculateSchoolDistrict(String type) {
+		List<School> list = repo.findAll((root, query, builder) -> {
+			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
+			Join<School, District> school_district = root.join(School_.DISTRICT);
+			Predicate p = builder.conjunction();
+			p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME), "Đang hợp tác"));
+			p = builder.and(p, builder.isTrue(root.get(School_.IS_ACTIVE)));
+			p = builder.and(p, builder.equal(school_district.get(District_.NAME), type));
+			return p;
+		}); 
+		return list.size();
+	}
+	public List<String> getType(){
+		return  Stream.of(SchoolType.values())
+                .map(SchoolType::getValues) // map using 'getValue'
+                .collect(Collectors.toList());
+	}
+	
+	private double calculateSchoolType(String type) {
+		List<School> list = repo.findAll((root, query, builder) -> {
+			Join<School, SchoolStatus> school_status = root.join(School_.SCHOOL_STATUS);
+			Predicate p = builder.conjunction();
+			p = builder.and(p, builder.equal(school_status.get(SchoolStatus_.NAME), "Đang hợp tác"));
+			p = builder.and(p, builder.isTrue(root.get(School_.IS_ACTIVE)));
+			p = builder.and(p, builder.equal(root.get(School_.TYPE),SchoolType.valueOfLabel(type)));
+			return p;
+		}); 
+		return list.size();
+	}
 }
+

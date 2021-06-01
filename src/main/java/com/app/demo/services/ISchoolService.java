@@ -2,6 +2,7 @@ package com.app.demo.services;
 
 import java.util.List;
 
+import com.app.demo.dtos.DashboardDTO;
 import com.app.demo.dtos.Paging;
 import com.app.demo.dtos.Principle;
 import com.app.demo.dtos.SchoolDTO;
@@ -23,4 +24,5 @@ public interface ISchoolService {
 	 Paging<SchoolDTO> getSchoolForTarget(String key,String district, String status, String type, String level,
 				String schoolYear,int page, int limit, String column, String direction);
 	 List<SuggestionSalesman> getSuggestion(List<String> schoolId);
+	List<DashboardDTO> getSchoolType(String type);
 }

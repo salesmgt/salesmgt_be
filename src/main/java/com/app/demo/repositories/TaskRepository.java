@@ -26,9 +26,9 @@ public interface TaskRepository extends JpaRepository<Task, Integer>,JpaSpecific
 	@Query(value= "select u.school_year from task u where u.school_id= ?1 order by u.school_year desc", nativeQuery = true)
 	List<String> getSchoolYearsBySchoolId(int id);
 	
-	@Query(value= "SELECT COUNT(*) FROM task u INNER JOIN purpose p on u.purpose_id = p.id"
-			+ "	 WHERE u.school_year = ?1 and p.name=?2", nativeQuery = true)
-	long countBySchoolYearAndPurpose(String year,String purpose);
+//	@Query(value= "SELECT COUNT(*) FROM task u INNER JOIN purpose p on u.purpose_id = p.id"
+//			+ "	 WHERE u.school_year = ?1 and p.name=?2", nativeQuery = true)
+//	long countBySchoolYearAndPurpose(String year,String purpose);
 	
 	@Query(value= "SELECT COUNT(*) FROM task u"
 			+ "	 WHERE u.school_year = ?1 and u.user_id=?2", nativeQuery = true)

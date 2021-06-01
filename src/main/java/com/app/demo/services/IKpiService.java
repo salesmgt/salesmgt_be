@@ -2,6 +2,7 @@ package com.app.demo.services;
 
 import java.util.List;
 
+import com.app.demo.dtos.KpiDetailsDTO;
 import com.app.demo.dtos.KpiGroupDTO;
 import com.app.demo.dtos.KpiGroupDetails;
 import com.app.demo.dtos.KpiInsertObject;
@@ -14,4 +15,5 @@ public interface IKpiService {
 	KpiUserDetails getByKpiId(int kpiId);
 	void setDisbale(int id);
 	List<KpiGroupDTO> getGroupByUsername(String username,String status);
+	void updateKPIManual(int detailId,double request);
 }

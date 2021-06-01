@@ -144,6 +144,12 @@ public class KpiService implements IKpiService {
 	return dtos;
 	}
 	@Override
+	public void updateKPIManual(int detailId,double request) {
+		KpiDetails detail = detailRepo.getOne(detailId);
+		detail.setActualValue(request);
+		detailRepo.save(detail);
+	}
+	@Override
 	public KpiGroupDetails getOneKpiGroup(int groupId){
 		KpiGroup group = groupRepo.getOne(groupId);
 		List<Kpi> kpis = group.getKpis();
@@ -204,6 +210,7 @@ public class KpiService implements IKpiService {
 					boolean dup = false;
 					
 					for (KpiDetailsDTO kpiDetailDTO : kpiDetailsDTO) {
+						
 						if(kpiDetailDTO.getCriteriaId().equalsIgnoreCase(item.getCriteria().getId())) {
 							kpiDetailDTO.setValue(kpiDetailDTO.getValue()+citeriaValue);		
 							dup =true;
@@ -212,7 +219,7 @@ public class KpiService implements IKpiService {
 					if(!dup) {
 						KpiDetailsDTO criteria = new KpiDetailsDTO(item.getCriteria().getId(),item.getCriteria().getName(),
 								citeriaValue,
-								item.getCriteria().getType(),item.getWeight());
+								item.getCriteria().getType(),item.getWeight(),item.getCriteria().getDescription());
 						kpiDetailsDTO.add(criteria);
 					}	
 				}
@@ -254,6 +261,7 @@ public class KpiService implements IKpiService {
 			detail.setWeight(item.getWeight());
 			detail.setTargetValue(item.getTargetValue());
 			detail.setType(item.getCriteria().getType());
+			detail.setDescription(item.getCriteria().getDescription());
 			if(group.isActive()&&group.getEndDate().after(new Date())) {
 				
 				switch (item.getCriteria().getId()) {
